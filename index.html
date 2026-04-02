@@ -176,6 +176,7 @@ table.mini tr:last-child td { border-bottom: none; }
   <div class="tab active" onclick="showTab('cash',this)">💰 Cash Flow</div>
   <div class="tab" onclick="showTab('pnl',this)">📈 P&L</div>
   <div class="tab" onclick="showTab('unit',this)">⚙️ Unit Economics</div>
+  <div class="tab" onclick="showTab('vol',this)">📦 Объёмы</div>
 </div>
 
 <div id="error-box"></div>
@@ -216,17 +217,17 @@ table.mini tr:last-child td { border-bottom: none; }
 
   <div class="grid-2">
     <div class="insight-card">
-      <div class="insight-title"><span class="dot8" style="background:#1D9E75"></span>Cash bridge 2027</div>
+      <div class="insight-title"><span class="dot8" style="background:#1D9E75"></span>Cash bridge к апрелю 2027</div>
       <table class="mini">
-        <tr><td>Net income (EBT)</td><td id="b-ni">—</td></tr>
-        <tr><td>ΔAR (drag)</td><td id="b-ar" class="td-muted">—</td></tr>
-        <tr><td>ΔInventory</td><td id="b-inv" class="td-muted">—</td></tr>
-        <tr><td>ΔAP</td><td id="b-ap">—</td></tr>
-        <tr><td>Equity injection</td><td id="b-eq">—</td></tr>
-        <tr><td><strong>Closing cash апр 2027</strong></td><td id="b-close" class="td-green"><strong>—</strong></td></tr>
+        <tr><td>Opening cash (янв 2027)</td><td id="b-open">—</td></tr>
+        <tr><td>+ Operating CF янв</td><td id="b-m1">—</td></tr>
+        <tr><td>+ Operating CF фев</td><td id="b-m2">—</td></tr>
+        <tr><td>+ Operating CF мар</td><td id="b-m3">—</td></tr>
+        <tr><td>+ Operating CF апр</td><td id="b-m4">—</td></tr>
+        <tr><td><strong>= Closing cash апр 2027</strong></td><td id="b-close" class="td-green"><strong>—</strong></td></tr>
       </table>
       <div class="callout callout-green">
-        <strong>$<span id="hl-cash">987</span>K достигнут в апреле 2027</strong> операционной деятельностью. Покрывает первые <span id="hl-mo">~4</span> месяца equity injection — реальная потребность во внешнем финансировании сокращается до <strong>$<span id="hl-ext">—</span>K</strong>.
+        <strong>$<span id="hl-cash">987</span>K — накопленный операционный профит трейд-модели.</strong> Equity injection начинается только с мая 2027 — к этому моменту бизнес уже самостоятельно аккумулировал <span id="hl-cash2">$988K</span> кэша.
       </div>
     </div>
     <div class="insight-card">
@@ -379,6 +380,73 @@ table.mini tr:last-child td { border-bottom: none; }
 
 </div>
 
+<!-- ══ VOLUMES TAB ════════════════════════════════════════════════════ -->
+<div class="page" id="tab-vol">
+
+  <div class="kpi-row kpi-row-3">
+    <div class="kpi-card">
+      <div class="kpi-badge bg-blue">Трейд — стабильный объём</div>
+      <div class="kpi-value">21 000 кг</div>
+      <div class="kpi-sub">Ежемесячные продажи с июля 2026 (полная мощность)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-green">Цена продажи</div>
+      <div class="kpi-value">$13.6/кг</div>
+      <div class="kpi-sub">Стабильная цена трейд-модели 2026–2027</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-purple">Производство — старт</div>
+      <div class="kpi-value">Ноя 2027</div>
+      <div class="kpi-sub">Первый месяц собственного производства фри</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Объём продаж — трейд vs производство (тонн/мес)</span>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-vol1','volumes_sales')">↓ PNG</button>
+    </div>
+    <div class="legend">
+      <span><span class="lsq" style="background:#185fa5"></span>Трейд (покупной фри), т</span>
+      <span><span class="lsq" style="background:#1D9E75"></span>Производство (собств. фри), т</span>
+    </div>
+    <div class="chart-wrap" style="height:240px"><canvas id="ch-vol1"></canvas></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">
+        <span>Выручка: трейд vs производство ($K)</span>
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-vol2','volumes_revenue')">↓ PNG</button>
+      </div>
+      <div class="chart-wrap" style="height:220px"><canvas id="ch-vol2"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">
+        <span>Закупки трейд — объём и стоимость</span>
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-vol3','volumes_purchases')">↓ PNG</button>
+      </div>
+      <div class="chart-wrap" style="height:220px"><canvas id="ch-vol3"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight-card" style="margin-top:16px">
+    <div class="insight-title"><span class="dot8" style="background:#185fa5"></span>Логика объёмов</div>
+    <table class="mini">
+      <tr><td>Трейд — старт (май 2026)</td><td>6 900 кг/мес</td></tr>
+      <tr><td>Трейд — полная мощность (июл 2026)</td><td>21 000 кг/мес</td></tr>
+      <tr><td>Трейд — цена закупки</td><td>$7.1–7.3/кг</td></tr>
+      <tr><td>Трейд — цена продажи</td><td>$13.6/кг</td></tr>
+      <tr><td>Производство — старт (ноя 2027)</td><td>41 667 кг/мес</td></tr>
+      <tr><td>Производство — выход (дек 2027)</td><td>83 333 кг/мес</td></tr>
+    </table>
+    <div class="callout callout-blue" style="margin-top:12px">
+      Трейд-модель — это перепродажа готового фри: закупаем у поставщика, продаём дистрибьюторам. Производство запускается в ноябре 2027 и добавляет собственный продукт поверх трейда. Объём трейда остаётся базой — производство масштабирует общую выручку.
+    </div>
+  </div>
+
+</div>
+
 <script>
 const ID  = '1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE';
 const CH  = {};
@@ -504,7 +572,7 @@ async function loadAll() {
   document.getElementById('error-box').style.display='none';
 
   try {
-    const [cf,bal,pnl] = await Promise.all([fetchCSV('CF'),fetchCSV('Balance'),fetchCSV('P%26L')]);
+    const [cf,bal,pnl,vol] = await Promise.all([fetchCSV('CF'),fetchCSV('Balance'),fetchCSV('P&L'),fetchCSV('Volume Build-Up')]);
 
     // ── CF parsing ────────────────────────────────────────────────
     const {c26,c27}=monthCols(cf);
@@ -514,14 +582,19 @@ async function loadAll() {
     const rAR   =findRow(cf,'ΔAR');
     const rInv  =findRow(cf,'inventory');
     const rAP   =findRow(cf,'ΔAP');
+    const rOps  =findRow(cf,'Cash flow from operations');
 
     const cl26=getVals(cf,rClose,c26), cl27=getVals(cf,rClose,c27);
     const eq26=getVals(cf,rEq,  c26),  eq27=getVals(cf,rEq,  c27);
+    const ops27=getVals(cf,rOps,c27);
     const closing  =[...cl26,...cl27].map(K);
     const eqInj    =[...eq26,...eq27].map(K);
     const ann27    =c27[c27.length-1]+1;
     const aprilCash=cl27[3]||987530;
     const eqAnn    =eq27.reduce((a,b)=>a+b,0);
+
+    // Opening cash Jan 2027 = closing Dec 2026
+    const openingJan27 = cl26[cl26.length-1] || 598130;
 
     // Equity split
     const pool=K(aprilCash); let rem=pool;
@@ -609,11 +682,16 @@ async function loadAll() {
     flash('k-cash',  fK(aprilCash));
     flash('k-eq',    fK(eqAnn));
     set('k-covered', fK(pool*1000));
-    set('b-ni',    fK(niCFAnn)); set('b-ar', arAnn?fK(arAnn):'—');
-    set('b-inv',   invAnn?fK(invAnn):'—'); set('b-ap', apAnn?fK(apAnn):'—');
-    set('b-eq',    fK(eqAnn));
+
+    // Cash bridge — operational accumulation Jan-Apr 2027
+    set('b-open', fK(openingJan27));
+    set('b-m1',  '+'+fK(ops27[0]));
+    set('b-m2',  '+'+fK(ops27[1]));
+    set('b-m3',  '+'+fK(ops27[2]));
+    set('b-m4',  '+'+fK(ops27[3]));
     document.getElementById('b-close').querySelector('strong').textContent=fK(aprilCash)+' ✓';
-    set('hl-cash', K(aprilCash).toLocaleString('ru-RU'));
+    set('hl-cash',  K(aprilCash).toLocaleString('ru-RU'));
+    set('hl-cash2', fK(aprilCash));
     set('hl-mo',   '~'+covMonths);
     set('hl-ext',  extNeeded.toLocaleString('ru-RU'));
 
@@ -706,6 +784,56 @@ async function loadAll() {
       {label:'Консол. GM %',  data:allGM, borderColor:'#1D9E75',backgroundColor:'transparent',tension:.2,pointRadius:2,borderWidth:2,borderDash:[4,2]}
     ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: ${(c.parsed.y||0).toFixed(1)}%`}}},scales:{x:sX,y:{...sYpct}}}});
 
+    // ── Volumes parsing ───────────────────────────────────────────
+    const {c26:vc26,c27:vc27}=monthCols(vol);
+    // Trade model rows (after row 37)
+    const vtStart=findRow(vol,'Trade model',30);
+    const rTSalesKg  =findRow(vol,'Sales volume, kg',    vtStart>0?vtStart:37);
+    const rTRevVol   =findRow(vol,'Revenue, $',          vtStart>0?vtStart:37);
+    const rTPurchKg  =findRow(vol,'Purchase volume, kg', vtStart>0?vtStart:37);
+    const rTPurchVal =findRow(vol,'Purchases, $',        vtStart>0?vtStart:37);
+    // Production model rows (before row 37)
+    const rPSalesKg  =findRow(vol,'Sales volume, kg',    0);
+    const rPRevVol   =findRow(vol,'Revenue, $',          0);
+    const rPProdKg   =findRow(vol,'Production (fries',   0);
+
+    const tSalesKg=[...getVals(vol,rTSalesKg, vc26),...getVals(vol,rTSalesKg, vc27)].map(v=>Math.round(v/1000*10)/10);
+    const tRevVol =[...getVals(vol,rTRevVol,  vc26),...getVals(vol,rTRevVol,  vc27)].map(K);
+    const tPurchKg=[...getVals(vol,rTPurchKg, vc26),...getVals(vol,rTPurchKg, vc27)].map(v=>Math.round(v/1000*10)/10);
+    const tPurchV =[...getVals(vol,rTPurchVal,vc26),...getVals(vol,rTPurchVal,vc27)].map(K);
+    const pSalesKg=[...getVals(vol,rPSalesKg, vc26),...getVals(vol,rPSalesKg, vc27)].map(v=>Math.round(v/1000*10)/10);
+    const pRevVol =[...getVals(vol,rPRevVol,  vc26),...getVals(vol,rPRevVol,  vc27)].map(K);
+    const pProdKg =[...getVals(vol,rPProdKg,  vc26),...getVals(vol,rPProdKg,  vc27)].map(v=>Math.round(v/1000*10)/10);
+
+    // Volume charts
+    const sYkg={ticks:{color:muted,font:bf,callback:v=>v+'т'},grid:{color:gc},border:{color:'transparent'}};
+
+    mk('ch-vol1',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Трейд (т)',       data:tSalesKg, backgroundColor:'rgba(24,95,165,.6)', borderColor:'#185fa5',borderWidth:1,borderRadius:3,stack:'s'},
+      {label:'Производство (т)',data:pSalesKg, backgroundColor:'rgba(29,158,117,.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'s'}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
+      label:c=>c.parsed.y?` ${c.dataset.label}: ${c.parsed.y.toLocaleString('ru-RU')} т`:null,
+      afterBody:ctx=>{
+        const i=ctx[0].dataIndex;
+        const tot=(tSalesKg[i]||0)+(pSalesKg[i]||0);
+        return tot?['─────────',` Итого: ${tot.toLocaleString('ru-RU')} т`]:[];
+      }
+    }}},scales:{x:{...sX,stacked:true},y:{...sYkg,stacked:true}}}});
+
+    mk('ch-vol2',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Трейд ($K)',       data:tRevVol, backgroundColor:'rgba(24,95,165,.55)',borderColor:'#185fa5',borderWidth:1,borderRadius:3,stack:'r'},
+      {label:'Производство ($K)',data:pRevVol, backgroundColor:'rgba(29,158,117,.55)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'r'}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
+      label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null
+    }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
+
+    mk('ch-vol3',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Закупки объём (т)',data:tPurchKg,type:'line',borderColor:'#BA7517',backgroundColor:'rgba(186,117,23,.08)',fill:true,tension:.3,pointRadius:2,borderWidth:2,order:1},
+      {label:'Закупки стоимость ($K)',data:tPurchV,backgroundColor:'rgba(186,117,23,.5)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,order:2}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
+      label:c=>c.parsed.y?` ${c.dataset.label}: ${c.dataset.label.includes('$')?'$'+c.parsed.y.toLocaleString('ru-RU')+'K':c.parsed.y.toLocaleString('ru-RU')+' т'}`:null
+    }}},scales:{x:sX,y:{...sY}}}});
+
     // Status
     const ts=new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     set('ts','Обновлено '+ts);
@@ -716,10 +844,11 @@ async function loadAll() {
     const eb=document.getElementById('error-box');
     eb.style.display='block';
     eb.innerHTML=`<strong>Не удалось загрузить:</strong> ${err.message}<br><br>
-    <b>Диагностика:</b> открой в браузере → должен скачаться CSV:<br>
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">CF лист</a> · 
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=Balance" target="_blank" style="color:#185fa5">Balance лист</a> · 
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=P%26L" target="_blank" style="color:#185fa5">P&L лист</a>`;
+    <b>Диагностика:</b> открой в браузере — должен скачаться CSV:<br>
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">CF</a> · 
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=Balance" target="_blank" style="color:#185fa5">Balance</a> · 
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=P%26L" target="_blank" style="color:#185fa5">P&L</a> ·
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=Volume+Build-Up" target="_blank" style="color:#185fa5">Volume Build-Up</a>`;
     console.error(err);
   } finally {
     document.getElementById('rbtn').disabled=false;
