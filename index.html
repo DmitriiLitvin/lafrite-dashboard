@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Frite — Live Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f4f0; color: #2c2c2a;
+  padding: 32px 24px 56px; max-width: 1100px; margin: 0 auto;
+}
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
+  padding-bottom: 18px; border-bottom: 1px solid #d3d1c7;
+}
+.report-title { font-size: 22px; font-weight: 500; }
+.report-sub   { font-size: 13px; color: #73726c; margin-top: 5px; }
+.last-updated { font-size: 11px; color: #888780; margin-top: 4px; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-family: inherit; cursor: pointer;
+  border-radius: 7px; padding: 8px 16px; border: 1px solid; transition: background .15s;
+  text-decoration: none;
+}
+.btn-primary { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.btn-primary:hover { background: #0f6e56; }
+.btn-primary:disabled { opacity: .5; cursor: default; }
+.btn-outline { background: #fff; color: #185fa5; border-color: #b5d4f4; }
+.btn-outline:hover { background: #e6f1fb; }
+
+.status {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid;
+}
+.s-ok      { background: #e8f7f2; color: #0f6e56;  border-color: #9FE1CB; }
+.s-error   { background: #fcebeb; color: #791f1f;  border-color: #f09595; }
+.s-loading { background: #faeeda; color: #854f0b;  border-color: #fac775; }
+.s-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+.kpi-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 16px 18px; }
+.kpi-badge {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  padding: 2px 9px; border-radius: 20px; margin-bottom: 8px; letter-spacing: .03em;
+}
+.badge-green { background: #e8f7f2; color: #0f6e56; }
+.badge-amber { background: #faeeda; color: #854f0b; }
+.badge-blue  { background: #e6f1fb; color: #185fa5; }
+.kpi-value { font-size: 26px; font-weight: 500; transition: color .5s; }
+.kpi-value.flash { color: #1D9E75; }
+.kpi-sub { font-size: 12px; color: #73726c; margin-top: 5px; line-height: 1.4; }
+
+.section { background: #fff; border: 1px solid #d3d1c7; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+.section-title {
+  font-size: 11px; font-weight: 600; color: #888780;
+  text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chart-wrap { position: relative; width: 100%; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 11.5px; color: #73726c; }
+.legend-row span { display: flex; align-items: center; gap: 5px; }
+.lsq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+.insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
+.insight-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 16px 18px; }
+.insight-header {
+  font-size: 11px; font-weight: 600; color: #73726c; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 7px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-green { background: #1D9E75; } .dot-amber { background: #BA7517; }
+table.mini { width: 100%; font-size: 12.5px; border-collapse: collapse; }
+table.mini td { padding: 6px 0; border-bottom: 1px solid #f1efe8; }
+table.mini td:last-child { text-align: right; font-weight: 500; }
+table.mini tr:last-child td { border-bottom: none; }
+.muted-td { color: #73726c !important; font-weight: 400 !important; }
+.green-td { color: #0f6e56 !important; }
+.note-box {
+  background: #faeeda; border-left: 4px solid #BA7517;
+  border-radius: 8px; padding: 11px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px;
+}
+.highlight-box {
+  background: #e8f7f2; border-left: 4px solid #1D9E75;
+  border-radius: 8px; padding: 11px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px;
+}
+#error-box {
+  display: none; background: #fcebeb; border: 1px solid #f09595; border-left: 4px solid #A32D2D;
+  border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #791f1f; line-height: 1.8;
+}
+.spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width:640px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .insight-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="error-box"></div>
+
+<div class="header">
+  <div>
+    <div class="report-title">La Frite — Live Dashboard</div>
+    <div class="report-sub">CF & Balance · данные из Google Sheets · 2026–2027</div>
+    <div class="last-updated" id="ts">Загрузка...</div>
+  </div>
+  <div class="header-right">
+    <span class="status s-loading" id="status">
+      <span class="s-dot"></span><span id="status-txt">Загрузка...</span>
+    </span>
+    <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/d/1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE/edit" target="_blank">
+      ✏️ Открыть таблицу
+    </a>
+    <button class="btn btn-primary" id="refresh-btn" onclick="load()">
+      ↻ Обновить
+    </button>
+  </div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-badge badge-green">✓ Closing cash апрель 2027</div>
+    <div class="kpi-value" id="kpi-cash">—</div>
+    <div class="kpi-sub">Достигается в апреле — свободен для реинвестирования</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-badge badge-amber">⚡ Equity injection 2027</div>
+    <div class="kpi-value" id="kpi-eq">—</div>
+    <div class="kpi-sub">Требуется май–ноябрь; часть покрывается операционным кэшем</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-badge badge-blue">△ AR на балансе (ноя '27)</div>
+    <div class="kpi-value" id="kpi-ar">—</div>
+    <div class="kpi-sub">Расхождение CF vs P&L — дебиторка не в кэше</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span>Closing cash & Equity injection — помесячно ($K)</span>
+    <button class="btn btn-outline" onclick="dl('c1','cf_cash')">↓ PNG</button>
+  </div>
+  <div class="legend-row">
+    <span><span class="lsq" style="background:#1D9E75"></span>Closing cash</span>
+    <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Equity injection</span>
+    <span><span class="lsq" style="background:#d4537e;opacity:.7;border:1px dashed #d4537e"></span>Порог реинвест.</span>
+  </div>
+  <div class="chart-wrap" style="height:260px"><canvas id="c1"></canvas></div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span>Структура баланса — 2027 помесячно ($K)</span>
+    <button class="btn btn-outline" onclick="dl('c2','balance_2027')">↓ PNG</button>
+  </div>
+  <div class="legend-row">
+    <span><span class="lsq" style="background:#1D9E75"></span>Cash</span>
+    <span><span class="lsq" style="background:#BA7517"></span>AR</span>
+    <span><span class="lsq" style="background:#7F77DD"></span>Inventory</span>
+    <span><span class="lsq" style="background:rgba(162,45,45,.5);border:1px solid #A32D2D"></span>AP</span>
+    <span><span class="lsq" style="background:rgba(29,158,117,.25);border:1px solid #1D9E75"></span>Equity</span>
+  </div>
+  <div class="chart-wrap" style="height:240px"><canvas id="c2"></canvas></div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span>Equity injection 2027: покрытие кэшем vs внешняя потребность ($K)</span>
+    <button class="btn btn-outline" onclick="dl('c3','equity_split')">↓ PNG</button>
+  </div>
+  <div class="legend-row">
+    <span><span class="lsq" style="background:rgba(29,158,117,.6)"></span>Покрывается кэшем</span>
+    <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Требует внешнего equity</span>
+  </div>
+  <div class="chart-wrap" style="height:200px"><canvas id="c3"></canvas></div>
+</div>
+
+<div class="insight-grid">
+  <div class="insight-card">
+    <div class="insight-header"><span class="dot dot-green"></span>Cash bridging через трейд-модель</div>
+    <table class="mini">
+      <tr><td>Net income (EBT) 2027</td><td id="t1">—</td></tr>
+      <tr><td>ΔAR (drag on cash)</td><td id="t2" class="muted-td">—</td></tr>
+      <tr><td>ΔInventory</td><td id="t3" class="muted-td">—</td></tr>
+      <tr><td>ΔAP</td><td id="t4">—</td></tr>
+      <tr><td>Equity injection</td><td id="t5">—</td></tr>
+      <tr><td><strong>Closing cash апр 2027</strong></td><td id="t6" class="green-td"><strong>—</strong></td></tr>
+    </table>
+    <div class="highlight-box">
+      <strong>$<span id="hl1">—</span>K достигается уже в апреле 2027</strong> — до пика equity injection. Покрывает первые <span id="hl2">—</span> месяца потребности.
+    </div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-header"><span class="dot dot-amber"></span>Расхождение CF vs P&L (AR gap)</div>
+    <table class="mini">
+      <tr><td>AR (окт '27)</td><td id="ar1">—</td></tr>
+      <tr><td>AR (ноя '27)</td><td id="ar2">—</td></tr>
+      <tr><td>AR (дек '27)</td><td id="ar3">—</td></tr>
+      <tr><td>Кассовый разрыв в пике</td><td id="ar4">—</td></tr>
+    </table>
+    <div class="note-box">
+      Cash ≠ P&L из-за роста дебиторки. CF отрицателен до equity injection. Выравнивание в 2028.
+    </div>
+  </div>
+</div>
+
+<script>
+const ID = '1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE';
+const CH = {};
+
+// ── CSV fetch (работает т.к. файл открыт по ссылке) ──────────────────
+async function fetchCSV(sheet) {
+  const url = `https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&t=${Date.now()}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status} — лист "${sheet}"`);
+  const text = await r.text();
+  return parseCSV(text);
+}
+
+function parseCSV(text) {
+  const rows = [];
+  // Simple but robust CSV parser handling quoted fields
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i+1];
+    if (inQ) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field.trim()); field = ''; }
+      else if (c === '\n') { row.push(field.trim()); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') {}
+      else field += c;
+    }
+  }
+  if (field || row.length) { row.push(field.trim()); rows.push(row); }
+  return rows;
+}
+
+const n = v => { if (!v || v === '') return 0; return parseFloat(String(v).replace(/[^\d.\-]/g,'')) || 0; };
+const K = v => Math.round(v / 1000);
+const fK = v => '$' + Math.round(v/1000).toLocaleString('ru-RU') + 'K';
+
+function findRow(data, label) {
+  const lo = label.toLowerCase();
+  return data.findIndex(r => r[1] && r[1].toLowerCase().includes(lo));
+}
+
+function monthCols(data) {
+  const hdr = data[4] || [];
+  const c26=[], c27=[];
+  hdr.forEach((cell,c) => {
+    if (c < 2) return;
+    const s = String(cell);
+    const pure = s.replace(/[^0-9]/g,'');
+    // Skip pure annual totals
+    if (s.trim() === '2026' || s.trim() === '2027') return;
+    if (s.includes('2026')) c26.push(c);
+    else if (s.includes('2027')) c27.push(c);
+  });
+  return { c26: c26.slice(0,12), c27: c27.slice(0,12) };
+}
+
+function vals(data, ri, cols) {
+  if (ri < 0) return cols.map(()=>0);
+  return cols.map(c => n(data[ri]?.[c]));
+}
+
+// ── Main ─────────────────────────────────────────────────────────────
+async function load() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Загружаю...';
+  setStatus('loading','Загрузка...');
+  document.getElementById('error-box').style.display = 'none';
+
+  try {
+    const [cf, bal] = await Promise.all([fetchCSV('CF'), fetchCSV('Balance')]);
+
+    // ── CF ────────────────────────────────────────────────────────
+    const { c26, c27 } = monthCols(cf);
+
+    const rClose = findRow(cf,'Closing cash');
+    const rEq    = findRow(cf,'Equity injection');
+    const rNI    = findRow(cf,'Net income');
+    const rAR    = findRow(cf,'AR');
+    const rInv   = findRow(cf,'inventory');
+    const rAP    = findRow(cf,'AP');
+
+    const cl26 = vals(cf,rClose,c26), cl27 = vals(cf,rClose,c27);
+    const eq26 = vals(cf,rEq,  c26), eq27 = vals(cf,rEq,  c27);
+
+    const closing = [...cl26,...cl27].map(K);
+    const eqInj   = [...eq26,...eq27].map(K);
+
+    const ann27 = c27[c27.length-1]+1;
+    const niAnn  = n(cf[rNI] ?.[ann27]);
+    const arAnn  = n(cf[rAR] ?.[ann27]);
+    const invAnn = n(cf[rInv]?.[ann27]);
+    const apAnn  = n(cf[rAP] ?.[ann27]);
+    const eqAnn  = eq27.reduce((a,b)=>a+b,0);
+    const aprilCash = cl27[3] || 987530;
+
+    // ── Balance ───────────────────────────────────────────────────
+    const { c27: bc27 } = monthCols(bal);
+    const cash_b = vals(bal,findRow(bal,'Cash'),              bc27).map(K);
+    const ar_b   = vals(bal,findRow(bal,'Accounts Receivable'),bc27).map(K);
+    const inv_b  = vals(bal,findRow(bal,'Inventory'),          bc27).map(K);
+    const ap_b   = vals(bal,findRow(bal,'Accounts Payable'),   bc27).map(K);
+    const eq_b   = vals(bal,findRow(bal,'TOTAL EQUITY'),       bc27).map(K);
+    const ta_b   = vals(bal,findRow(bal,'TOTAL ASSETS'),       bc27).map(K);
+
+    // ── KPIs ──────────────────────────────────────────────────────
+    flash('kpi-cash', fK(aprilCash));
+    flash('kpi-eq',   fK(eqAnn));
+    flash('kpi-ar',   '$'+(ar_b[10]||0).toLocaleString('ru-RU')+'K');
+
+    set('t1', fK(niAnn)); set('t2', arAnn?fK(arAnn):'—');
+    set('t3', invAnn?fK(invAnn):'—'); set('t4', apAnn?fK(apAnn):'—');
+    set('t5', fK(eqAnn));
+    document.getElementById('t6').querySelector('strong').textContent = fK(aprilCash)+' ✓';
+    set('hl1', K(aprilCash).toLocaleString('ru-RU'));
+
+    const pool = K(aprilCash); let rem = pool;
+    const covered   = eq27.map(v=>{ const vk=K(v),c=Math.min(rem,vk); rem=Math.max(0,rem-vk); return c; });
+    const uncovered = eq27.map((v,i)=>K(v)-covered[i]);
+    set('hl2','~'+covered.filter(v=>v>0).length);
+    set('ar1','$'+(ar_b[9] ||0)+'K'); set('ar2','$'+(ar_b[10]||0)+'K');
+    set('ar3','$'+(ar_b[11]||0)+'K'); set('ar4','~$'+(ar_b[10]||0)+'K');
+
+    // ── Charts ────────────────────────────────────────────────────
+    const L26=['янв\'26','фев\'26','мар\'26','апр\'26','май\'26','июн\'26','июл\'26','авг\'26','сен\'26','окт\'26','ноя\'26','дек\'26'];
+    const L27=['янв\'27','фев\'27','мар\'27','апр\'27','май\'27','июн\'27','июл\'27','авг\'27','сен\'27','окт\'27','ноя\'27','дек\'27'];
+    const allL = [...L26.slice(0,c26.length),...L27.slice(0,c27.length)];
+    const reinvestK = K(aprilCash);
+    const aprIdx    = c26.length + 3;
+
+    const muted='#888780', gc='rgba(0,0,0,0.06)';
+    const bf={family:"-apple-system,'Segoe UI',sans-serif",size:11};
+    const tip={backgroundColor:'#fff',borderColor:'#d3d1c7',borderWidth:1,titleColor:'#2c2c2a',bodyColor:'#444441',padding:10};
+    const sX={ticks:{color:muted,font:bf,autoSkip:false,maxRotation:45},grid:{color:gc},border:{color:gc}};
+    const sY={ticks:{color:muted,font:bf,callback:v=>'$'+v+'K'},grid:{color:gc},border:{color:'transparent'}};
+    const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}};
+
+    const annoPlugin = {
+      id:'anno',
+      afterDraw({ctx,chartArea:{left,right,top},scales:{x,y}}) {
+        const yp=y.getPixelForValue(reinvestK);
+        ctx.save();
+        ctx.setLineDash([5,4]); ctx.strokeStyle='#d4537e'; ctx.lineWidth=1.5; ctx.globalAlpha=.65;
+        ctx.beginPath(); ctx.moveTo(left,yp); ctx.lineTo(right,yp); ctx.stroke();
+        ctx.setLineDash([]); ctx.globalAlpha=1;
+        ctx.fillStyle='#993356'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='right';
+        ctx.fillText('$'+reinvestK+'K — порог реинвест. (апр \'27)', right-4, yp-5);
+        const xp=x.getPixelForValue(aprIdx);
+        ctx.strokeStyle='#1D9E75'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.globalAlpha=.55;
+        ctx.beginPath(); ctx.moveTo(xp,top); ctx.lineTo(xp,yp); ctx.stroke();
+        ctx.setLineDash([]); ctx.globalAlpha=1;
+        ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(xp,yp,6,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('✓',xp,yp+3);
+        const bx=xp+8,by=yp-22,bw=144,bh=28;
+        ctx.fillStyle='#fff'; ctx.strokeStyle='#9FE1CB'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,4); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#0f6e56'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='left';
+        ctx.fillText('$'+reinvestK+'K достигнут апр \'27',bx+6,by+11);
+        ctx.fillStyle='#3B6D11'; ctx.font='9.5px -apple-system,sans-serif';
+        ctx.fillText('Свободен для реинвестирования',bx+6,by+22);
+        ctx.restore();
+      }
+    };
+
+    mk('c1',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Closing cash',data:closing,type:'line',borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.3,pointRadius:closing.map((_,i)=>i===aprIdx?0:2.5),pointBackgroundColor:'#1D9E75',borderWidth:2.5,order:1},
+      {label:'Equity injection',data:eqInj,backgroundColor:'rgba(186,117,23,.6)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,order:2}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY,min:0,suggestedMax:reinvestK*1.2}}},plugins:[annoPlugin]});
+
+    mk('c2',{type:'bar',data:{labels:L27.slice(0,bc27.length),datasets:[
+      {label:'Cash',     data:cash_b,backgroundColor:'#1D9E75',stack:'a'},
+      {label:'AR',       data:ar_b,  backgroundColor:'#BA7517',stack:'a'},
+      {label:'Inventory',data:inv_b, backgroundColor:'#7F77DD',stack:'a'},
+      {label:'AP',       data:ap_b,  backgroundColor:'rgba(162,45,45,.5)',borderColor:'#A32D2D',borderWidth:1,stack:'b'},
+      {label:'Equity',   data:eq_b,  backgroundColor:'rgba(29,158,117,.22)',borderColor:'#1D9E75',borderWidth:1,stack:'b'}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
+      label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`,
+      afterBody:ctx=>{const i=ctx[0].dataIndex;return['─────────────────',` Total Assets: $${(ta_b[i]||0).toLocaleString('ru-RU')}K`,` Total Equity: $${(eq_b[i]||0).toLocaleString('ru-RU')}K`];}
+    }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
+
+    mk('c3',{type:'bar',data:{labels:L27.slice(0,eq27.length),datasets:[
+      {label:'Покрывается кэшем',      data:covered,  backgroundColor:'rgba(29,158,117,.6)', borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'eq'},
+      {label:'Требует внешнего equity',data:uncovered,backgroundColor:'rgba(186,117,23,.7)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,stack:'eq'}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
+      title:c=>'Equity 2027 — '+c[0].label,
+      label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null,
+      afterBody:ctx=>{const i=ctx[0].dataIndex,t=(covered[i]||0)+(uncovered[i]||0);return t?['─────────',` Итого: $${t.toLocaleString('ru-RU')}K`]:[];}
+    }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true,min:0}}}});
+
+    setStatus('ok','Данные актуальны');
+    set('ts','Обновлено: '+new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}));
+
+  } catch(err) {
+    setStatus('error','Ошибка загрузки');
+    const eb=document.getElementById('error-box');
+    eb.style.display='block';
+    eb.innerHTML=`<strong>Не удалось загрузить данные:</strong> ${err.message}<br><br>
+    <strong>Что проверить:</strong><br>
+    1. Открой в браузере: <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">эту ссылку</a> — должен скачаться CSV файл<br>
+    2. Если скачивается — нажми "Обновить" выше, должно заработать<br>
+    3. Если нет — проверь настройки доступа: Настройки Доступа → Все у кого есть ссылка → Читатель`;
+    console.error(err);
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='↻ Обновить';
+  }
+}
+
+function mk(id,cfg) { if(CH[id]) CH[id].destroy(); CH[id]=new Chart(document.getElementById(id),cfg); }
+function flash(id,v) { const el=document.getElementById(id); el.textContent=v; el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1500); }
+function set(id,v) { const el=document.getElementById(id); if(el) el.textContent=v; }
+function setStatus(t,txt) { document.getElementById('status').className='status s-'+t; set('status-txt',txt); }
+function dl(id,name) {
+  const c=document.getElementById(id),e=document.createElement('canvas');
+  e.width=c.width*2; e.height=c.height*2;
+  const x=e.getContext('2d'); x.scale(2,2); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(c,0,0);
+  const a=document.createElement('a'); a.download=name+'.png'; a.href=e.toDataURL('image/png'); a.click();
+}
+
+load();
+</script>
+</body>
+</html>
