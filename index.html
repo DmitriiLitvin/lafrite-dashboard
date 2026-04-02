@@ -673,7 +673,26 @@ async function loadAll() {
 
     // Cost breakdown donut 2027
     const cogsAnnK=K(cogsAnn), opexAnnK=K(opexAnn), gpAnnK=K(gpAnn);
-    mk('ch-costs',{type:'doughnut',data:{labels:['COGS','OPEX','Gross Profit'],datasets:[{data:[cogsAnnK,opexAnnK,Math.max(0,gpAnnK)],backgroundColor:['rgba(162,45,45,.6)','rgba(186,117,23,.6)','rgba(29,158,117,.6)'],borderColor:['#A32D2D','#BA7517','#1D9E75'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:bf,color:muted,boxWidth:10,padding:8}},tooltip:{...tip,callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString('ru-RU')+'K'}}}}}}); 
+    mk('ch-costs',{
+      type:'doughnut',
+      data:{
+        labels:['COGS','OPEX','Gross Profit'],
+        datasets:[{
+          data:[cogsAnnK, opexAnnK, Math.max(0,gpAnnK)],
+          backgroundColor:['rgba(162,45,45,.6)','rgba(186,117,23,.6)','rgba(29,158,117,.6)'],
+          borderColor:['#A32D2D','#BA7517','#1D9E75'],
+          borderWidth:1
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'bottom',labels:{font:bf,color:muted,boxWidth:10,padding:8}},
+          tooltip:{...tip,callbacks:{label:function(c){return ' '+c.label+': $'+c.parsed.toLocaleString('ru-RU')+'K';}}}
+        }
+      }
+    });
 
     // ── Unit Economics charts ──────────────────────────────────────
     mk('ch-ue1',{type:'bar',data:{labels:allL,datasets:[
