@@ -3,96 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>La Frite — Live Dashboard</title>
+<title>La Frite — Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #f5f4f0; color: #2c2c2a;
-  padding: 32px 24px 56px; max-width: 1100px; margin: 0 auto;
+  min-height: 100vh;
 }
-.header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
-  padding-bottom: 18px; border-bottom: 1px solid #d3d1c7;
+
+/* ── Top bar ── */
+.topbar {
+  background: #fff; border-bottom: 1px solid #d3d1c7;
+  padding: 0 32px; display: flex; align-items: center;
+  justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100;
 }
-.report-title { font-size: 22px; font-weight: 500; }
-.report-sub   { font-size: 13px; color: #73726c; margin-top: 5px; }
-.last-updated { font-size: 11px; color: #888780; margin-top: 4px; }
-.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.logo { font-size: 16px; font-weight: 500; color: #2c2c2a; display: flex; align-items: center; gap: 10px; }
+.logo-badge {
+  background: #e8f7f2; color: #0f6e56; font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px; letter-spacing: .04em;
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.ts { font-size: 11px; color: #888780; }
 
 .btn {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; gap: 5px;
   font-size: 12px; font-family: inherit; cursor: pointer;
-  border-radius: 7px; padding: 8px 16px; border: 1px solid; transition: background .15s;
-  text-decoration: none;
+  border-radius: 7px; padding: 6px 14px; border: 1px solid; transition: background .15s;
+  text-decoration: none; white-space: nowrap;
 }
 .btn-primary { background: #1D9E75; color: #fff; border-color: #1D9E75; }
 .btn-primary:hover { background: #0f6e56; }
 .btn-primary:disabled { opacity: .5; cursor: default; }
-.btn-outline { background: #fff; color: #185fa5; border-color: #b5d4f4; }
+.btn-outline  { background: #fff; color: #185fa5; border-color: #b5d4f4; }
 .btn-outline:hover { background: #e6f1fb; }
+.btn-ghost    { background: transparent; color: #5f5e5a; border-color: #d3d1c7; }
+.btn-ghost:hover { background: #f1efe8; }
 
 .status {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid;
 }
-.s-ok      { background: #e8f7f2; color: #0f6e56;  border-color: #9FE1CB; }
-.s-error   { background: #fcebeb; color: #791f1f;  border-color: #f09595; }
-.s-loading { background: #faeeda; color: #854f0b;  border-color: #fac775; }
+.s-ok      { background: #e8f7f2; color: #0f6e56; border-color: #9FE1CB; }
+.s-error   { background: #fcebeb; color: #791f1f; border-color: #f09595; }
+.s-loading { background: #faeeda; color: #854f0b; border-color: #fac775; }
 .s-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-.kpi-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+/* ── Tabs ── */
+.tabs {
+  background: #fff; border-bottom: 1px solid #d3d1c7;
+  padding: 0 32px; display: flex; gap: 0;
+}
+.tab {
+  padding: 14px 20px; font-size: 13px; color: #73726c; cursor: pointer;
+  border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.tab:hover { color: #2c2c2a; }
+.tab.active { color: #1D9E75; border-bottom-color: #1D9E75; font-weight: 500; }
+
+/* ── Content ── */
+.page { display: none; padding: 28px 32px 56px; max-width: 1140px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── KPI row ── */
+.kpi-row { display: grid; gap: 12px; margin-bottom: 20px; }
+.kpi-row-3 { grid-template-columns: repeat(3,1fr); }
+.kpi-row-4 { grid-template-columns: repeat(4,1fr); }
 .kpi-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 16px 18px; }
 .kpi-badge {
   display: inline-block; font-size: 10px; font-weight: 600;
   padding: 2px 9px; border-radius: 20px; margin-bottom: 8px; letter-spacing: .03em;
 }
-.badge-green { background: #e8f7f2; color: #0f6e56; }
-.badge-amber { background: #faeeda; color: #854f0b; }
-.badge-blue  { background: #e6f1fb; color: #185fa5; }
-.kpi-value { font-size: 26px; font-weight: 500; transition: color .5s; }
+.bg-green { background: #e8f7f2; color: #0f6e56; }
+.bg-amber { background: #faeeda; color: #854f0b; }
+.bg-blue  { background: #e6f1fb; color: #185fa5; }
+.bg-red   { background: #fcebeb; color: #791f1f; }
+.bg-purple{ background: #EEEDFE; color: #3C3489; }
+.kpi-value { font-size: 24px; font-weight: 500; transition: color .5s; }
 .kpi-value.flash { color: #1D9E75; }
-.kpi-sub { font-size: 12px; color: #73726c; margin-top: 5px; line-height: 1.4; }
+.kpi-sub { font-size: 11.5px; color: #73726c; margin-top: 4px; line-height: 1.4; }
 
-.section { background: #fff; border: 1px solid #d3d1c7; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
-.section-title {
+/* ── Cards ── */
+.card { background: #fff; border: 1px solid #d3d1c7; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+.card-title {
   font-size: 11px; font-weight: 600; color: #888780;
   text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
-.chart-wrap { position: relative; width: 100%; }
-.legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 11.5px; color: #73726c; }
-.legend-row span { display: flex; align-items: center; gap: 5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: #73726c; margin-bottom: 12px; }
+.legend span { display: flex; align-items: center; gap: 5px; }
 .lsq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.chart-wrap { position: relative; width: 100%; }
 
-.insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
+/* ── Two column grid ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── Insight cards ── */
 .insight-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 16px 18px; }
-.insight-header {
+.insight-title {
   font-size: 11px; font-weight: 600; color: #73726c; margin-bottom: 12px;
   display: flex; align-items: center; gap: 7px;
   text-transform: uppercase; letter-spacing: .04em;
 }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot-green { background: #1D9E75; } .dot-amber { background: #BA7517; }
+.dot8 { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 table.mini { width: 100%; font-size: 12.5px; border-collapse: collapse; }
 table.mini td { padding: 6px 0; border-bottom: 1px solid #f1efe8; }
 table.mini td:last-child { text-align: right; font-weight: 500; }
 table.mini tr:last-child td { border-bottom: none; }
-.muted-td { color: #73726c !important; font-weight: 400 !important; }
-.green-td { color: #0f6e56 !important; }
-.note-box {
-  background: #faeeda; border-left: 4px solid #BA7517;
+.td-muted { color: #73726c !important; font-weight: 400 !important; }
+.td-green { color: #0f6e56 !important; }
+.td-red   { color: #A32D2D !important; }
+.td-amber { color: #854f0b !important; }
+
+.callout {
   border-radius: 8px; padding: 11px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px;
 }
-.highlight-box {
-  background: #e8f7f2; border-left: 4px solid #1D9E75;
-  border-radius: 8px; padding: 11px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px;
+.callout-green { background: #e8f7f2; border-left: 4px solid #1D9E75; }
+.callout-amber { background: #faeeda; border-left: 4px solid #BA7517; }
+.callout-blue  { background: #e6f1fb; border-left: 4px solid #185fa5; }
+
+/* ── Milestone pill ── */
+.milestone {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e8f7f2; border: 1px solid #9FE1CB; border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; font-weight: 500; color: #0f6e56; margin: 3px;
 }
+
+/* ── Error ── */
 #error-box {
   display: none; background: #fcebeb; border: 1px solid #f09595; border-left: 4px solid #A32D2D;
-  border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #791f1f; line-height: 1.8;
+  border-radius: 8px; padding: 14px 18px; margin: 20px 32px;
+  font-size: 13px; color: #791f1f; line-height: 1.8;
 }
 .spinner {
   display: inline-block; width: 12px; height: 12px;
@@ -100,296 +143,511 @@ table.mini tr:last-child td { border-bottom: none; }
   border-radius: 50%; animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (max-width:640px) {
-  .kpi-row { grid-template-columns: 1fr; }
-  .insight-grid { grid-template-columns: 1fr; }
+@media (max-width: 768px) {
+  .topbar { padding: 0 16px; }
+  .tabs { padding: 0 16px; }
+  .page { padding: 20px 16px 48px; }
+  .kpi-row-3, .kpi-row-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .kpi-row-3, .kpi-row-4 { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">
+    La Frite
+    <span class="logo-badge">LIVE</span>
+  </div>
+  <div class="topbar-right">
+    <span class="ts" id="ts"></span>
+    <span class="status s-loading" id="status"><span class="s-dot"></span><span id="stxt">Загрузка...</span></span>
+    <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE/edit" target="_blank">✏️ Таблица</a>
+    <button class="btn btn-primary" id="rbtn" onclick="loadAll()"><span id="rbtn-txt">↻ Обновить</span></button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('cash',this)">💰 Cash Flow</div>
+  <div class="tab" onclick="showTab('pnl',this)">📈 P&L</div>
+  <div class="tab" onclick="showTab('unit',this)">⚙️ Unit Economics</div>
+</div>
+
 <div id="error-box"></div>
 
-<div class="header">
-  <div>
-    <div class="report-title">La Frite — Live Dashboard</div>
-    <div class="report-sub">CF & Balance · данные из Google Sheets · 2026–2027</div>
-    <div class="last-updated" id="ts">Загрузка...</div>
-  </div>
-  <div class="header-right">
-    <span class="status s-loading" id="status">
-      <span class="s-dot"></span><span id="status-txt">Загрузка...</span>
-    </span>
-    <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/d/1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE/edit" target="_blank">
-      ✏️ Открыть таблицу
-    </a>
-    <button class="btn btn-primary" id="refresh-btn" onclick="load()">
-      ↻ Обновить
-    </button>
-  </div>
-</div>
+<!-- ══ CASH TAB ══════════════════════════════════════════════════════ -->
+<div class="page active" id="tab-cash">
 
-<div class="kpi-row">
-  <div class="kpi-card">
-    <div class="kpi-badge badge-green">✓ Closing cash апрель 2027</div>
-    <div class="kpi-value" id="kpi-cash">—</div>
-    <div class="kpi-sub">Достигается в апреле — свободен для реинвестирования</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-badge badge-amber">⚡ Equity injection 2027</div>
-    <div class="kpi-value" id="kpi-eq">—</div>
-    <div class="kpi-sub">Требуется май–ноябрь; часть покрывается операционным кэшем</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-badge badge-blue">△ AR на балансе (ноя '27)</div>
-    <div class="kpi-value" id="kpi-ar">—</div>
-    <div class="kpi-sub">Расхождение CF vs P&L — дебиторка не в кэше</div>
-  </div>
-</div>
-
-<div class="section">
-  <div class="section-title">
-    <span>Closing cash & Equity injection — помесячно ($K)</span>
-    <button class="btn btn-outline" onclick="dl('c1','cf_cash')">↓ PNG</button>
-  </div>
-  <div class="legend-row">
-    <span><span class="lsq" style="background:#1D9E75"></span>Closing cash</span>
-    <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Equity injection</span>
-    <span><span class="lsq" style="background:#d4537e;opacity:.7;border:1px dashed #d4537e"></span>Порог реинвест.</span>
-  </div>
-  <div class="chart-wrap" style="height:260px"><canvas id="c1"></canvas></div>
-</div>
-
-<div class="section">
-  <div class="section-title">
-    <span>Структура баланса — 2027 помесячно ($K)</span>
-    <button class="btn btn-outline" onclick="dl('c2','balance_2027')">↓ PNG</button>
-  </div>
-  <div class="legend-row">
-    <span><span class="lsq" style="background:#1D9E75"></span>Cash</span>
-    <span><span class="lsq" style="background:#BA7517"></span>AR</span>
-    <span><span class="lsq" style="background:#7F77DD"></span>Inventory</span>
-    <span><span class="lsq" style="background:rgba(162,45,45,.5);border:1px solid #A32D2D"></span>AP</span>
-    <span><span class="lsq" style="background:rgba(29,158,117,.25);border:1px solid #1D9E75"></span>Equity</span>
-  </div>
-  <div class="chart-wrap" style="height:240px"><canvas id="c2"></canvas></div>
-</div>
-
-<div class="section">
-  <div class="section-title">
-    <span>Equity injection 2027: покрытие кэшем vs внешняя потребность ($K)</span>
-    <button class="btn btn-outline" onclick="dl('c3','equity_split')">↓ PNG</button>
-  </div>
-  <div class="legend-row">
-    <span><span class="lsq" style="background:rgba(29,158,117,.6)"></span>Покрывается кэшем</span>
-    <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Требует внешнего equity</span>
-  </div>
-  <div class="chart-wrap" style="height:200px"><canvas id="c3"></canvas></div>
-</div>
-
-<div class="insight-grid">
-  <div class="insight-card">
-    <div class="insight-header"><span class="dot dot-green"></span>Cash bridging через трейд-модель</div>
-    <table class="mini">
-      <tr><td>Net income (EBT) 2027</td><td id="t1">—</td></tr>
-      <tr><td>ΔAR (drag on cash)</td><td id="t2" class="muted-td">—</td></tr>
-      <tr><td>ΔInventory</td><td id="t3" class="muted-td">—</td></tr>
-      <tr><td>ΔAP</td><td id="t4">—</td></tr>
-      <tr><td>Equity injection</td><td id="t5">—</td></tr>
-      <tr><td><strong>Closing cash апр 2027</strong></td><td id="t6" class="green-td"><strong>—</strong></td></tr>
-    </table>
-    <div class="highlight-box">
-      <strong>$<span id="hl1">—</span>K достигается уже в апреле 2027</strong> — до пика equity injection. Покрывает первые <span id="hl2">—</span> месяца потребности.
+  <div class="kpi-row kpi-row-3">
+    <div class="kpi-card">
+      <div class="kpi-badge bg-green">✓ Closing cash апрель 2027</div>
+      <div class="kpi-value" id="k-cash">—</div>
+      <div class="kpi-sub">Достигнут операционной деятельностью — до equity injection</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-amber">⚡ Equity injection 2027</div>
+      <div class="kpi-value" id="k-eq">—</div>
+      <div class="kpi-sub">Требуется май–ноябрь; <span id="k-covered">—</span> покрывается кэшем</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-blue">▲ Первый + CF</div>
+      <div class="kpi-value">Авг 2026</div>
+      <div class="kpi-sub">Первый месяц с положительным операционным денежным потоком</div>
     </div>
   </div>
-  <div class="insight-card">
-    <div class="insight-header"><span class="dot dot-amber"></span>Расхождение CF vs P&L (AR gap)</div>
-    <table class="mini">
-      <tr><td>AR (окт '27)</td><td id="ar1">—</td></tr>
-      <tr><td>AR (ноя '27)</td><td id="ar2">—</td></tr>
-      <tr><td>AR (дек '27)</td><td id="ar3">—</td></tr>
-      <tr><td>Кассовый разрыв в пике</td><td id="ar4">—</td></tr>
-    </table>
-    <div class="note-box">
-      Cash ≠ P&L из-за роста дебиторки. CF отрицателен до equity injection. Выравнивание в 2028.
+
+  <div class="card">
+    <div class="card-title">
+      <span>Closing cash & Equity injection — помесячно ($K)</span>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-cash','cf_closing_cash')">↓ PNG</button>
+    </div>
+    <div class="legend">
+      <span><span class="lsq" style="background:#1D9E75"></span>Closing cash</span>
+      <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Equity injection</span>
+      <span><span class="lsq" style="background:#d4537e;opacity:.7;border:1px dashed #d4537e"></span>Порог реинвест. $987K</span>
+    </div>
+    <div class="chart-wrap" style="height:260px"><canvas id="ch-cash"></canvas></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="insight-card">
+      <div class="insight-title"><span class="dot8" style="background:#1D9E75"></span>Cash bridge 2027</div>
+      <table class="mini">
+        <tr><td>Net income (EBT)</td><td id="b-ni">—</td></tr>
+        <tr><td>ΔAR (drag)</td><td id="b-ar" class="td-muted">—</td></tr>
+        <tr><td>ΔInventory</td><td id="b-inv" class="td-muted">—</td></tr>
+        <tr><td>ΔAP</td><td id="b-ap">—</td></tr>
+        <tr><td>Equity injection</td><td id="b-eq">—</td></tr>
+        <tr><td><strong>Closing cash апр 2027</strong></td><td id="b-close" class="td-green"><strong>—</strong></td></tr>
+      </table>
+      <div class="callout callout-green">
+        <strong>$<span id="hl-cash">987</span>K достигнут в апреле 2027</strong> операционной деятельностью. Покрывает первые <span id="hl-mo">~4</span> месяца equity injection — реальная потребность во внешнем финансировании сокращается до <strong>$<span id="hl-ext">—</span>K</strong>.
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title"><span class="dot8" style="background:#BA7517"></span>Equity injection — разбивка 2027</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="ch-eq"></canvas></div>
+      <div class="callout callout-amber" style="margin-top:10px">
+        Зелёная часть — покрывается операционным кэшем. Янтарная — требует внешнего привлечения.
+      </div>
     </div>
   </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">
+      <span>Структура баланса — 2027 помесячно ($K)</span>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-bal','balance_2027')">↓ PNG</button>
+    </div>
+    <div class="legend">
+      <span><span class="lsq" style="background:#1D9E75"></span>Cash</span>
+      <span><span class="lsq" style="background:#BA7517"></span>AR</span>
+      <span><span class="lsq" style="background:#7F77DD"></span>Inventory</span>
+      <span><span class="lsq" style="background:rgba(162,45,45,.5);border:1px solid #A32D2D"></span>AP</span>
+      <span><span class="lsq" style="background:rgba(29,158,117,.25);border:1px solid #1D9E75"></span>Equity</span>
+    </div>
+    <div class="chart-wrap" style="height:220px"><canvas id="ch-bal"></canvas></div>
+  </div>
+
+</div>
+
+<!-- ══ P&L TAB ═══════════════════════════════════════════════════════ -->
+<div class="page" id="tab-pnl">
+
+  <div class="kpi-row kpi-row-4">
+    <div class="kpi-card">
+      <div class="kpi-badge bg-blue">Revenue 2027 FY</div>
+      <div class="kpi-value" id="p-rev">—</div>
+      <div class="kpi-sub">Годовая выручка по трейд-модели</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-green">Gross Profit 2027 FY</div>
+      <div class="kpi-value" id="p-gp">—</div>
+      <div class="kpi-sub">Gross margin ~<span id="p-gm">—</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-purple">EBITDA 2027 FY</div>
+      <div class="kpi-value" id="p-ebitda">—</div>
+      <div class="kpi-sub">EBITDA margin ~<span id="p-em">—</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-amber">Breakeven</div>
+      <div class="kpi-value">Май 2026</div>
+      <div class="kpi-sub">Первый месяц с положительным Net Income</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Выручка, Gross Profit & EBITDA — помесячно ($K)</span>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-pnl','pnl_monthly')">↓ PNG</button>
+    </div>
+    <div class="legend">
+      <span><span class="lsq" style="background:#185fa5"></span>Revenue</span>
+      <span><span class="lsq" style="background:#1D9E75"></span>Gross Profit</span>
+      <span><span class="lsq" style="background:#7F77DD"></span>EBITDA</span>
+      <span><span class="lsq" style="background:rgba(162,45,45,.4);border:1px dashed #A32D2D"></span>Net Income</span>
+    </div>
+    <div class="chart-wrap" style="height:260px"><canvas id="ch-pnl"></canvas></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Gross Margin % — помесячно</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="ch-gm"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Структура затрат 2027 FY ($K)</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="ch-costs"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight-card" style="margin-top:16px">
+    <div class="insight-title"><span class="dot8" style="background:#185fa5"></span>P&L Summary 2027</div>
+    <table class="mini">
+      <tr><td>Revenue</td><td id="ps-rev">—</td></tr>
+      <tr><td>Total COGS</td><td id="ps-cogs" class="td-muted">—</td></tr>
+      <tr><td>Gross Profit</td><td id="ps-gp">—</td></tr>
+      <tr><td>Total OPEX</td><td id="ps-opex" class="td-muted">—</td></tr>
+      <tr><td>EBITDA</td><td id="ps-ebitda">—</td></tr>
+      <tr><td><strong>Net Income</strong></td><td id="ps-ni" class="td-green"><strong>—</strong></td></tr>
+    </table>
+    <div class="callout callout-blue" style="margin-top:12px">
+      Ноябрь 2027 — пиковый месяц по COGS из-за запуска производственной линии ($1,049K). После этого консолидированная маржа восстанавливается выше 56% в декабре.
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ UNIT ECONOMICS TAB ════════════════════════════════════════════ -->
+<div class="page" id="tab-unit">
+
+  <div class="kpi-row kpi-row-3">
+    <div class="kpi-card">
+      <div class="kpi-badge bg-green">Trade Gross Margin</div>
+      <div class="kpi-value">~47–48%</div>
+      <div class="kpi-sub">Стабильная маржа трейд-модели 2026–2027</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-blue">Revenue run-rate</div>
+      <div class="kpi-value" id="u-rr">—</div>
+      <div class="kpi-sub">При выходе на полную мощность (×12)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-badge bg-purple">EBITDA run-rate</div>
+      <div class="kpi-value" id="u-er">—</div>
+      <div class="kpi-sub">При стабильной работе трейд-модели</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span>Revenue vs COGS — трейд-модель помесячно ($K)</span>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-ue1','unit_rev_cogs')">↓ PNG</button>
+    </div>
+    <div class="legend">
+      <span><span class="lsq" style="background:#185fa5"></span>Revenue (трейд)</span>
+      <span><span class="lsq" style="background:rgba(162,45,45,.5)"></span>COGS (трейд)</span>
+      <span><span class="lsq" style="background:#1D9E75"></span>Gross Profit</span>
+    </div>
+    <div class="chart-wrap" style="height:240px"><canvas id="ch-ue1"></canvas></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Gross Margin % — трейд vs консолидация</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="ch-ue2"></canvas></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title"><span class="dot8" style="background:#7F77DD"></span>Ramp-up профиль</div>
+      <div style="margin-bottom:10px">
+        <span class="milestone">Май 2026 — старт продаж</span>
+        <span class="milestone">Июл 2026 — полная мощность трейд</span>
+        <span class="milestone">Авг 2026 — первый + CF</span>
+        <span class="milestone">Апр 2027 — $987K cash</span>
+        <span class="milestone">Ноя 2027 — запуск производства</span>
+      </div>
+      <div class="callout callout-blue">
+        Трейд-модель генерирует стабильный Gross Profit ~$137K/мес уже с июля 2026 при марже 47.8%. Производственная линия запускается в ноябре 2027 — первый месяц убыточный по COGS из-за рамп-апа, затем маржа выходит на 56%+.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-const ID = '1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE';
-const CH = {};
+const ID  = '1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE';
+const CH  = {};
 
-// ── CSV fetch (работает т.к. файл открыт по ссылке) ──────────────────
+// ── Tabs ─────────────────────────────────────────────────────────────
+function showTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── Fetch & parse CSV ─────────────────────────────────────────────────
 async function fetchCSV(sheet) {
   const url = `https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&t=${Date.now()}`;
   const r = await fetch(url);
   if (!r.ok) throw new Error(`HTTP ${r.status} — лист "${sheet}"`);
-  const text = await r.text();
-  return parseCSV(text);
+  return parseCSV(await r.text());
 }
 
 function parseCSV(text) {
-  const rows = [];
-  // Simple but robust CSV parser handling quoted fields
-  let row = [], field = '', inQ = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i], next = text[i+1];
-    if (inQ) {
-      if (c === '"' && next === '"') { field += '"'; i++; }
-      else if (c === '"') inQ = false;
-      else field += c;
-    } else {
-      if (c === '"') inQ = true;
-      else if (c === ',') { row.push(field.trim()); field = ''; }
-      else if (c === '\n') { row.push(field.trim()); rows.push(row); row = []; field = ''; }
-      else if (c === '\r') {}
-      else field += c;
-    }
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i],nx=text[i+1];
+    if(q){ if(c==='"'&&nx==='"'){f+='"';i++;}else if(c==='"')q=false;else f+=c; }
+    else { if(c==='"')q=true; else if(c===','){row.push(f.trim());f='';}
+      else if(c==='\n'){row.push(f.trim());rows.push(row);row=[];f='';}
+      else if(c!=='\r')f+=c; }
   }
-  if (field || row.length) { row.push(field.trim()); rows.push(row); }
+  if(f||row.length){row.push(f.trim());rows.push(row);}
   return rows;
 }
 
-const n = v => { if (!v || v === '') return 0; return parseFloat(String(v).replace(/[^\d.\-]/g,'')) || 0; };
-const K = v => Math.round(v / 1000);
-const fK = v => '$' + Math.round(v/1000).toLocaleString('ru-RU') + 'K';
+const n  = v => { if(!v||v==='')return 0; return parseFloat(String(v).replace(/[^\d.\-]/g,''))||0; };
+const K  = v => Math.round(v/1000);
+const fK = v => '$'+Math.round(v/1000).toLocaleString('ru-RU')+'K';
+const fM = v => { const m=Math.round(v/1000000*10)/10; return '$'+m+'M'; };
 
-function findRow(data, label) {
-  const lo = label.toLowerCase();
-  return data.findIndex(r => r[1] && r[1].toLowerCase().includes(lo));
+function findRow(data, label, fromRow=0) {
+  const lo=label.toLowerCase();
+  for(let i=fromRow;i<data.length;i++){
+    if(data[i].some(c=>c&&String(c).toLowerCase().includes(lo))) return i;
+  }
+  return -1;
 }
 
 function monthCols(data) {
-  const hdr = data[4] || [];
-  const c26=[], c27=[];
-  hdr.forEach((cell,c) => {
-    if (c < 2) return;
-    const s = String(cell);
-    const pure = s.replace(/[^0-9]/g,'');
-    // Skip pure annual totals
-    if (s.trim() === '2026' || s.trim() === '2027') return;
-    if (s.includes('2026')) c26.push(c);
-    else if (s.includes('2027')) c27.push(c);
+  let hdr=[],best=0;
+  for(let i=0;i<Math.min(8,data.length);i++){
+    const hits=data[i].filter(c=>{const s=String(c);return s.includes('26')||s.includes('27');}).length;
+    if(hits>best){best=hits;hdr=data[i];}
+  }
+  const c26=[],c27=[];
+  hdr.forEach((cell,c)=>{
+    if(c<1)return;
+    const s=String(cell).trim();
+    const h26=(s.includes('2026')||s.includes('-26')||s.includes("'26"))&&s!=='2026';
+    const h27=(s.includes('2027')||s.includes('-27')||s.includes("'27"))&&s!=='2027';
+    if(h26)c26.push(c); else if(h27)c27.push(c);
   });
-  return { c26: c26.slice(0,12), c27: c27.slice(0,12) };
+  return {c26:c26.slice(0,12),c27:c27.slice(0,12)};
 }
 
-function vals(data, ri, cols) {
-  if (ri < 0) return cols.map(()=>0);
-  return cols.map(c => n(data[ri]?.[c]));
+function getVals(data,ri,cols){ if(ri<0)return cols.map(()=>0); return cols.map(c=>n(data[ri]?.[c])); }
+
+// ── Chart helpers ─────────────────────────────────────────────────────
+const muted='#888780', gc='rgba(0,0,0,0.06)';
+const bf={family:"-apple-system,'Segoe UI',sans-serif",size:11};
+const tip={backgroundColor:'#fff',borderColor:'#d3d1c7',borderWidth:1,titleColor:'#2c2c2a',bodyColor:'#444441',padding:10};
+const sX={ticks:{color:muted,font:bf,autoSkip:false,maxRotation:45},grid:{color:gc},border:{color:gc}};
+const sY={ticks:{color:muted,font:bf,callback:v=>'$'+v+'K'},grid:{color:gc},border:{color:'transparent'}};
+const sYpct={ticks:{color:muted,font:bf,callback:v=>v+'%'},grid:{color:gc},border:{color:'transparent'}};
+const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}};
+
+function mk(id,cfg){ if(CH[id])CH[id].destroy(); CH[id]=new Chart(document.getElementById(id),cfg); }
+function set(id,v){ const el=document.getElementById(id); if(el)el.textContent=v; }
+function flash(id,v){ const el=document.getElementById(id); if(!el)return; el.textContent=v; el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1500); }
+function setStatus(t,txt){ document.getElementById('status').className='status s-'+t; set('stxt',txt); }
+
+function dl(id,name){
+  const c=document.getElementById(id),e=document.createElement('canvas');
+  e.width=c.width*2;e.height=c.height*2;
+  const x=e.getContext('2d');x.scale(2,2);x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(c,0,0);
+  const a=document.createElement('a');a.download=name+'.png';a.href=e.toDataURL('image/png');a.click();
 }
 
-// ── Main ─────────────────────────────────────────────────────────────
-async function load() {
-  const btn = document.getElementById('refresh-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Загружаю...';
+// April 2027 annotation plugin
+function makeAnnoPlugin(reinvestK, aprIdx) {
+  return {
+    id:'anno',
+    afterDraw({ctx,chartArea:{left,right,top},scales:{x,y}}) {
+      const yp=y.getPixelForValue(reinvestK);
+      ctx.save();
+      ctx.setLineDash([5,4]);ctx.strokeStyle='#d4537e';ctx.lineWidth=1.5;ctx.globalAlpha=.6;
+      ctx.beginPath();ctx.moveTo(left,yp);ctx.lineTo(right,yp);ctx.stroke();
+      ctx.setLineDash([]);ctx.globalAlpha=1;
+      ctx.fillStyle='#993356';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='right';
+      ctx.fillText('$'+reinvestK+'K — порог реинвест.',right-4,yp-5);
+      const xp=x.getPixelForValue(aprIdx);
+      ctx.strokeStyle='#1D9E75';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.globalAlpha=.55;
+      ctx.beginPath();ctx.moveTo(xp,top);ctx.lineTo(xp,yp);ctx.stroke();
+      ctx.setLineDash([]);ctx.globalAlpha=1;
+      ctx.fillStyle='#1D9E75';ctx.beginPath();ctx.arc(xp,yp,6,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+      ctx.fillText('✓',xp,yp+3);
+      const bx=xp+8,by=yp-22,bw=140,bh=26;
+      ctx.fillStyle='#fff';ctx.strokeStyle='#9FE1CB';ctx.lineWidth=1;
+      ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#0f6e56';ctx.font='9.5px -apple-system,sans-serif';ctx.textAlign='left';
+      ctx.fillText('$'+reinvestK+'K достигнут апр \'27',bx+6,by+10);
+      ctx.fillStyle='#3B6D11';ctx.font='9px -apple-system,sans-serif';
+      ctx.fillText('Свободен для реинвестирования',bx+6,by+20);
+      ctx.restore();
+    }
+  };
+}
+
+// ── Main load ─────────────────────────────────────────────────────────
+async function loadAll() {
+  const btn=document.getElementById('rbtn');
+  btn.disabled=true; set('rbtn-txt',''); document.getElementById('rbtn-txt').innerHTML='<span class="spinner"></span> Загружаю...';
   setStatus('loading','Загрузка...');
-  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('error-box').style.display='none';
 
   try {
-    const [cf, bal] = await Promise.all([fetchCSV('CF'), fetchCSV('Balance')]);
+    const [cf,bal,pnl] = await Promise.all([fetchCSV('CF'),fetchCSV('Balance'),fetchCSV('P%26L')]);
 
-    // ── CF ────────────────────────────────────────────────────────
-    const { c26, c27 } = monthCols(cf);
+    // ── CF parsing ────────────────────────────────────────────────
+    const {c26,c27}=monthCols(cf);
+    const rClose=findRow(cf,'Closing cash');
+    const rEq   =findRow(cf,'Equity injection');
+    const rNI   =findRow(cf,'Net income');
+    const rAR   =findRow(cf,'ΔAR');
+    const rInv  =findRow(cf,'inventory');
+    const rAP   =findRow(cf,'ΔAP');
 
-    const rClose = findRow(cf,'Closing cash');
-    const rEq    = findRow(cf,'Equity injection');
-    const rNI    = findRow(cf,'Net income');
-    const rAR    = findRow(cf,'AR');
-    const rInv   = findRow(cf,'inventory');
-    const rAP    = findRow(cf,'AP');
+    const cl26=getVals(cf,rClose,c26), cl27=getVals(cf,rClose,c27);
+    const eq26=getVals(cf,rEq,  c26),  eq27=getVals(cf,rEq,  c27);
+    const closing  =[...cl26,...cl27].map(K);
+    const eqInj    =[...eq26,...eq27].map(K);
+    const ann27    =c27[c27.length-1]+1;
+    const aprilCash=cl27[3]||987530;
+    const eqAnn    =eq27.reduce((a,b)=>a+b,0);
 
-    const cl26 = vals(cf,rClose,c26), cl27 = vals(cf,rClose,c27);
-    const eq26 = vals(cf,rEq,  c26), eq27 = vals(cf,rEq,  c27);
+    // Equity split
+    const pool=K(aprilCash); let rem=pool;
+    const covered  =eq27.map(v=>{const vk=K(v),c=Math.min(rem,vk);rem=Math.max(0,rem-vk);return c;});
+    const uncovered=eq27.map((v,i)=>K(v)-covered[i]);
+    const covMonths=covered.filter(v=>v>0).length;
+    const extNeeded=uncovered.reduce((a,b)=>a+b,0);
 
-    const closing = [...cl26,...cl27].map(K);
-    const eqInj   = [...eq26,...eq27].map(K);
+    // ── Balance parsing ───────────────────────────────────────────
+    const {c27:bc27}=monthCols(bal);
+    const cash_b=getVals(bal,findRow(bal,'Cash'),               bc27).map(K);
+    const ar_b  =getVals(bal,findRow(bal,'Accounts Receivable'),bc27).map(K);
+    const inv_b =getVals(bal,findRow(bal,'Inventory'),          bc27).map(K);
+    const ap_b  =getVals(bal,findRow(bal,'Accounts Payable'),   bc27).map(K);
+    const eq_b  =getVals(bal,findRow(bal,'TOTAL EQUITY'),       bc27).map(K);
+    const ta_b  =getVals(bal,findRow(bal,'TOTAL ASSETS'),       bc27).map(K);
 
-    const ann27 = c27[c27.length-1]+1;
-    const niAnn  = n(cf[rNI] ?.[ann27]);
-    const arAnn  = n(cf[rAR] ?.[ann27]);
-    const invAnn = n(cf[rInv]?.[ann27]);
-    const apAnn  = n(cf[rAP] ?.[ann27]);
-    const eqAnn  = eq27.reduce((a,b)=>a+b,0);
-    const aprilCash = cl27[3] || 987530;
+    // ── P&L parsing — find Consolidation section (row 107+) ──────
+    const pnlCols=list=>list; // cols 2-26
+    const {c26:pc26,c27:pc27}=monthCols(pnl);
+    // Find consolidation section rows (after row ~107)
+    const consStart=findRow(pnl,'Consolidation',100);
+    const rRev  =findRow(pnl,'REVENUE',     consStart>0?consStart:100);
+    const rCogs =findRow(pnl,'Total COGS',  consStart>0?consStart:100);
+    const rGP   =findRow(pnl,'GROSS PROFIT',consStart>0?consStart:100);
+    const rOpex =findRow(pnl,'Total OPEX',  consStart>0?consStart:100);
+    const rEBITDA=findRow(pnl,'EBITDA',     consStart>0?consStart:100);
+    const rNetI =findRow(pnl,'NET INCOME',  consStart>0?consStart:100);
+    const rGM   =findRow(pnl,'Gross Margin',consStart>0?consStart:100);
+    const rEM   =findRow(pnl,'EBITDA Margin',consStart>0?consStart:100);
 
-    // ── Balance ───────────────────────────────────────────────────
-    const { c27: bc27 } = monthCols(bal);
-    const cash_b = vals(bal,findRow(bal,'Cash'),              bc27).map(K);
-    const ar_b   = vals(bal,findRow(bal,'Accounts Receivable'),bc27).map(K);
-    const inv_b  = vals(bal,findRow(bal,'Inventory'),          bc27).map(K);
-    const ap_b   = vals(bal,findRow(bal,'Accounts Payable'),   bc27).map(K);
-    const eq_b   = vals(bal,findRow(bal,'TOTAL EQUITY'),       bc27).map(K);
-    const ta_b   = vals(bal,findRow(bal,'TOTAL ASSETS'),       bc27).map(K);
+    const rev26  =getVals(pnl,rRev,  pc26); const rev27  =getVals(pnl,rRev,  pc27);
+    const cogs26 =getVals(pnl,rCogs, pc26); const cogs27 =getVals(pnl,rCogs, pc27);
+    const gp26   =getVals(pnl,rGP,   pc26); const gp27   =getVals(pnl,rGP,   pc27);
+    const opex26 =getVals(pnl,rOpex, pc26); const opex27 =getVals(pnl,rOpex, pc27);
+    const ebitda26=getVals(pnl,rEBITDA,pc26); const ebitda27=getVals(pnl,rEBITDA,pc27);
+    const ni26   =getVals(pnl,rNetI, pc26); const ni27   =getVals(pnl,rNetI, pc27);
+    const gm26   =getVals(pnl,rGM,   pc26); const gm27   =getVals(pnl,rGM,   pc27);
+    const em26   =getVals(pnl,rEM,   pc26); const em27   =getVals(pnl,rEM,   pc27);
 
-    // ── KPIs ──────────────────────────────────────────────────────
-    flash('kpi-cash', fK(aprilCash));
-    flash('kpi-eq',   fK(eqAnn));
-    flash('kpi-ar',   '$'+(ar_b[10]||0).toLocaleString('ru-RU')+'K');
+    const allRev=[...rev26,...rev27].map(K);
+    const allCogs=[...cogs26,...cogs27].map(K);
+    const allGP=[...gp26,...gp27].map(K);
+    const allEbitda=[...ebitda26,...ebitda27].map(K);
+    const allNI=[...ni26,...ni27].map(K);
+    const allGM=[...gm26,...gm27].map(v=>Math.round(v*100*10)/10);
+    const allEM=[...em26,...em27].map(v=>Math.round(v*100*10)/10);
 
-    set('t1', fK(niAnn)); set('t2', arAnn?fK(arAnn):'—');
-    set('t3', invAnn?fK(invAnn):'—'); set('t4', apAnn?fK(apAnn):'—');
-    set('t5', fK(eqAnn));
-    document.getElementById('t6').querySelector('strong').textContent = fK(aprilCash)+' ✓';
-    set('hl1', K(aprilCash).toLocaleString('ru-RU'));
+    // Trade model section
+    const trStart=findRow(pnl,'Trade model',50);
+    const rTRev=findRow(pnl,'REVENUE',trStart>0?trStart:60);
+    const rTCogs=findRow(pnl,'Total COGS',trStart>0?trStart:60);
+    const rTGP=findRow(pnl,'GROSS PROFIT',trStart>0?trStart:60);
+    const rTGM=findRow(pnl,'Gross Margin',trStart>0?trStart:60);
+    const tRev26=getVals(pnl,rTRev,pc26);  const tRev27=getVals(pnl,rTRev,pc27);
+    const tCogs26=getVals(pnl,rTCogs,pc26); const tCogs27=getVals(pnl,rTCogs,pc27);
+    const tGP26=getVals(pnl,rTGP,pc26);   const tGP27=getVals(pnl,rTGP,pc27);
+    const tGM26=getVals(pnl,rTGM,pc26);   const tGM27=getVals(pnl,rTGM,pc27);
 
-    const pool = K(aprilCash); let rem = pool;
-    const covered   = eq27.map(v=>{ const vk=K(v),c=Math.min(rem,vk); rem=Math.max(0,rem-vk); return c; });
-    const uncovered = eq27.map((v,i)=>K(v)-covered[i]);
-    set('hl2','~'+covered.filter(v=>v>0).length);
-    set('ar1','$'+(ar_b[9] ||0)+'K'); set('ar2','$'+(ar_b[10]||0)+'K');
-    set('ar3','$'+(ar_b[11]||0)+'K'); set('ar4','~$'+(ar_b[10]||0)+'K');
+    const allTRev=[...tRev26,...tRev27].map(K);
+    const allTCogs=[...tCogs26,...tCogs27].map(K);
+    const allTGP=[...tGP26,...tGP27].map(K);
+    const allTGM=[...tGM26,...tGM27].map(v=>Math.round(v*100*10)/10);
 
-    // ── Charts ────────────────────────────────────────────────────
+    // ── Annual 2027 totals ────────────────────────────────────────
+    const pAnn27=pc27[pc27.length-1]+1;
+    const revAnn =n(pnl[rRev]?.[pAnn27]);
+    const cogsAnn=n(pnl[rCogs]?.[pAnn27]);
+    const gpAnn  =n(pnl[rGP]?.[pAnn27]);
+    const opexAnn=n(pnl[rOpex]?.[pAnn27]);
+    const eAnn   =n(pnl[rEBITDA]?.[pAnn27]);
+    const niAnn  =n(pnl[rNetI]?.[pAnn27]);
+
+    // Steady-state month (Jul 2027 = index 6 in 2027)
+    const ssRev=tRev27[5]||286103; // june 2027 — stable trade month
+    const ssEBITDA=ebitda27[5]||119626;
+
+    // CF annual
+    const niCFAnn=n(cf[rNI]?.[ann27]);
+    const arAnn  =n(cf[rAR]?.[ann27]);
+    const invAnn =n(cf[rInv]?.[ann27]);
+    const apAnn  =n(cf[rAP]?.[ann27]);
+
+    // ── Update KPIs ───────────────────────────────────────────────
+    flash('k-cash',  fK(aprilCash));
+    flash('k-eq',    fK(eqAnn));
+    set('k-covered', fK(pool*1000));
+    set('b-ni',    fK(niCFAnn)); set('b-ar', arAnn?fK(arAnn):'—');
+    set('b-inv',   invAnn?fK(invAnn):'—'); set('b-ap', apAnn?fK(apAnn):'—');
+    set('b-eq',    fK(eqAnn));
+    document.getElementById('b-close').querySelector('strong').textContent=fK(aprilCash)+' ✓';
+    set('hl-cash', K(aprilCash).toLocaleString('ru-RU'));
+    set('hl-mo',   '~'+covMonths);
+    set('hl-ext',  extNeeded.toLocaleString('ru-RU'));
+
+    flash('p-rev',   revAnn>1e6 ? fM(revAnn) : fK(revAnn));
+    flash('p-gp',    fK(gpAnn));
+    flash('p-ebitda',fK(eAnn));
+    set('p-gm',  revAnn ? Math.round(gpAnn/revAnn*100)+'%' : '—');
+    set('p-em',  revAnn ? Math.round(eAnn/revAnn*100)+'%'  : '—');
+    set('ps-rev',  fK(revAnn)); set('ps-cogs', fK(cogsAnn));
+    set('ps-gp',   fK(gpAnn));  set('ps-opex', fK(opexAnn));
+    set('ps-ebitda',fK(eAnn));
+    document.getElementById('ps-ni').querySelector('strong').textContent=fK(niAnn);
+
+    flash('u-rr', '$'+Math.round(ssRev/1000*12).toLocaleString('ru-RU')+'K/yr');
+    flash('u-er', '$'+Math.round(ssEBITDA/1000*12).toLocaleString('ru-RU')+'K/yr');
+
+    // ── Labels ───────────────────────────────────────────────────
     const L26=['янв\'26','фев\'26','мар\'26','апр\'26','май\'26','июн\'26','июл\'26','авг\'26','сен\'26','окт\'26','ноя\'26','дек\'26'];
     const L27=['янв\'27','фев\'27','мар\'27','апр\'27','май\'27','июн\'27','июл\'27','авг\'27','сен\'27','окт\'27','ноя\'27','дек\'27'];
-    const allL = [...L26.slice(0,c26.length),...L27.slice(0,c27.length)];
-    const reinvestK = K(aprilCash);
-    const aprIdx    = c26.length + 3;
+    const allL=[...L26.slice(0,c26.length),...L27.slice(0,c27.length)];
+    const reinvestK=K(aprilCash), aprIdx=c26.length+3;
 
-    const muted='#888780', gc='rgba(0,0,0,0.06)';
-    const bf={family:"-apple-system,'Segoe UI',sans-serif",size:11};
-    const tip={backgroundColor:'#fff',borderColor:'#d3d1c7',borderWidth:1,titleColor:'#2c2c2a',bodyColor:'#444441',padding:10};
-    const sX={ticks:{color:muted,font:bf,autoSkip:false,maxRotation:45},grid:{color:gc},border:{color:gc}};
-    const sY={ticks:{color:muted,font:bf,callback:v=>'$'+v+'K'},grid:{color:gc},border:{color:'transparent'}};
-    const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}};
-
-    const annoPlugin = {
-      id:'anno',
-      afterDraw({ctx,chartArea:{left,right,top},scales:{x,y}}) {
-        const yp=y.getPixelForValue(reinvestK);
-        ctx.save();
-        ctx.setLineDash([5,4]); ctx.strokeStyle='#d4537e'; ctx.lineWidth=1.5; ctx.globalAlpha=.65;
-        ctx.beginPath(); ctx.moveTo(left,yp); ctx.lineTo(right,yp); ctx.stroke();
-        ctx.setLineDash([]); ctx.globalAlpha=1;
-        ctx.fillStyle='#993356'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='right';
-        ctx.fillText('$'+reinvestK+'K — порог реинвест. (апр \'27)', right-4, yp-5);
-        const xp=x.getPixelForValue(aprIdx);
-        ctx.strokeStyle='#1D9E75'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.globalAlpha=.55;
-        ctx.beginPath(); ctx.moveTo(xp,top); ctx.lineTo(xp,yp); ctx.stroke();
-        ctx.setLineDash([]); ctx.globalAlpha=1;
-        ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(xp,yp,6,0,Math.PI*2); ctx.fill();
-        ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center';
-        ctx.fillText('✓',xp,yp+3);
-        const bx=xp+8,by=yp-22,bw=144,bh=28;
-        ctx.fillStyle='#fff'; ctx.strokeStyle='#9FE1CB'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,4); ctx.fill(); ctx.stroke();
-        ctx.fillStyle='#0f6e56'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='left';
-        ctx.fillText('$'+reinvestK+'K достигнут апр \'27',bx+6,by+11);
-        ctx.fillStyle='#3B6D11'; ctx.font='9.5px -apple-system,sans-serif';
-        ctx.fillText('Свободен для реинвестирования',bx+6,by+22);
-        ctx.restore();
-      }
-    };
-
-    mk('c1',{type:'bar',data:{labels:allL,datasets:[
+    // ── CASH charts ───────────────────────────────────────────────
+    mk('ch-cash',{type:'bar',data:{labels:allL,datasets:[
       {label:'Closing cash',data:closing,type:'line',borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.3,pointRadius:closing.map((_,i)=>i===aprIdx?0:2.5),pointBackgroundColor:'#1D9E75',borderWidth:2.5,order:1},
       {label:'Equity injection',data:eqInj,backgroundColor:'rgba(186,117,23,.6)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,order:2}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY,min:0,suggestedMax:reinvestK*1.2}}},plugins:[annoPlugin]});
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY,min:0,suggestedMax:reinvestK*1.25}}},plugins:[makeAnnoPlugin(reinvestK,aprIdx)]});
 
-    mk('c2',{type:'bar',data:{labels:L27.slice(0,bc27.length),datasets:[
+    mk('ch-eq',{type:'bar',data:{labels:L27.slice(0,eq27.length),datasets:[
+      {label:'Покрывается кэшем',data:covered,backgroundColor:'rgba(29,158,117,.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'eq'},
+      {label:'Внешний equity',   data:uncovered,backgroundColor:'rgba(186,117,23,.65)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,stack:'eq'}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{title:c=>'Equity — '+c[0].label,label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null}}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true,min:0}}}});
+
+    mk('ch-bal',{type:'bar',data:{labels:L27.slice(0,bc27.length),datasets:[
       {label:'Cash',     data:cash_b,backgroundColor:'#1D9E75',stack:'a'},
       {label:'AR',       data:ar_b,  backgroundColor:'#BA7517',stack:'a'},
       {label:'Inventory',data:inv_b, backgroundColor:'#7F77DD',stack:'a'},
@@ -397,49 +655,60 @@ async function load() {
       {label:'Equity',   data:eq_b,  backgroundColor:'rgba(29,158,117,.22)',borderColor:'#1D9E75',borderWidth:1,stack:'b'}
     ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
       label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`,
-      afterBody:ctx=>{const i=ctx[0].dataIndex;return['─────────────────',` Total Assets: $${(ta_b[i]||0).toLocaleString('ru-RU')}K`,` Total Equity: $${(eq_b[i]||0).toLocaleString('ru-RU')}K`];}
+      afterBody:ctx=>{const i=ctx[0].dataIndex;return['─────────────',` Total Assets: $${(ta_b[i]||0).toLocaleString('ru-RU')}K`,` Equity: $${(eq_b[i]||0).toLocaleString('ru-RU')}K`];}
     }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
 
-    mk('c3',{type:'bar',data:{labels:L27.slice(0,eq27.length),datasets:[
-      {label:'Покрывается кэшем',      data:covered,  backgroundColor:'rgba(29,158,117,.6)', borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'eq'},
-      {label:'Требует внешнего equity',data:uncovered,backgroundColor:'rgba(186,117,23,.7)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,stack:'eq'}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
-      title:c=>'Equity 2027 — '+c[0].label,
-      label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null,
-      afterBody:ctx=>{const i=ctx[0].dataIndex,t=(covered[i]||0)+(uncovered[i]||0);return t?['─────────',` Итого: $${t.toLocaleString('ru-RU')}K`]:[];}
-    }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true,min:0}}}});
+    // ── P&L charts ────────────────────────────────────────────────
+    mk('ch-pnl',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Revenue',     data:allRev,   backgroundColor:'rgba(24,95,165,.55)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'rev'},
+      {label:'Gross Profit',data:allGP,    type:'line',borderColor:'#1D9E75',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2,order:1},
+      {label:'EBITDA',      data:allEbitda,type:'line',borderColor:'#7F77DD',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2,borderDash:[4,2],order:2},
+      {label:'Net Income',  data:allNI,    type:'line',borderColor:'rgba(162,45,45,.7)',backgroundColor:'transparent',tension:.3,pointRadius:1.5,borderWidth:1.5,borderDash:[2,2],order:3}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY}}}});
 
+    mk('ch-gm',{type:'line',data:{labels:allL,datasets:[
+      {label:'Gross Margin %',data:allGM,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.3,pointRadius:2,borderWidth:2},
+      {label:'EBITDA Margin %',data:allEM,borderColor:'#7F77DD',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2,borderDash:[4,2]}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: ${(c.parsed.y||0).toFixed(1)}%`}}},scales:{x:sX,y:{...sYpct}}}});
+
+    // Cost breakdown donut 2027
+    const cogsAnnK=K(cogsAnn), opexAnnK=K(opexAnn), gpAnnK=K(gpAnn);
+    mk('ch-costs',{type:'doughnut',data:{labels:['COGS','OPEX','Gross Profit'],datasets:[{data:[cogsAnnK,opexAnnK,Math.max(0,gpAnnK)],backgroundColor:['rgba(162,45,45,.6)','rgba(186,117,23,.6)','rgba(29,158,117,.6)'],borderColor:['#A32D2D','#BA7517','#1D9E75'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:bf,color:muted,boxWidth:10,padding:8}},tooltip:{...tip,callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString('ru-RU')+'K'}}}}}}); 
+
+    // ── Unit Economics charts ──────────────────────────────────────
+    mk('ch-ue1',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Revenue',     data:allTRev, backgroundColor:'rgba(24,95,165,.5)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'s'},
+      {label:'COGS',        data:allTCogs,backgroundColor:'rgba(162,45,45,.4)',borderColor:'#A32D2D',borderWidth:1,borderRadius:2,stack:'c'},
+      {label:'Gross Profit',data:allTGP,  type:'line',borderColor:'#1D9E75',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2.5,order:1}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY}}}});
+
+    mk('ch-ue2',{type:'line',data:{labels:allL,datasets:[
+      {label:'Трейд GM %',    data:allTGM,borderColor:'#185fa5',backgroundColor:'rgba(24,95,165,.07)',fill:true,tension:.2,pointRadius:2,borderWidth:2},
+      {label:'Консол. GM %',  data:allGM, borderColor:'#1D9E75',backgroundColor:'transparent',tension:.2,pointRadius:2,borderWidth:2,borderDash:[4,2]}
+    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: ${(c.parsed.y||0).toFixed(1)}%`}}},scales:{x:sX,y:{...sYpct}}}});
+
+    // Status
+    const ts=new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    set('ts','Обновлено '+ts);
     setStatus('ok','Данные актуальны');
-    set('ts','Обновлено: '+new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}));
 
   } catch(err) {
-    setStatus('error','Ошибка загрузки');
+    setStatus('error','Ошибка');
     const eb=document.getElementById('error-box');
     eb.style.display='block';
-    eb.innerHTML=`<strong>Не удалось загрузить данные:</strong> ${err.message}<br><br>
-    <strong>Что проверить:</strong><br>
-    1. Открой в браузере: <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">эту ссылку</a> — должен скачаться CSV файл<br>
-    2. Если скачивается — нажми "Обновить" выше, должно заработать<br>
-    3. Если нет — проверь настройки доступа: Настройки Доступа → Все у кого есть ссылка → Читатель`;
+    eb.innerHTML=`<strong>Не удалось загрузить:</strong> ${err.message}<br><br>
+    <b>Диагностика:</b> открой в браузере → должен скачаться CSV:<br>
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">CF лист</a> · 
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=Balance" target="_blank" style="color:#185fa5">Balance лист</a> · 
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=P%26L" target="_blank" style="color:#185fa5">P&L лист</a>`;
     console.error(err);
   } finally {
-    btn.disabled=false;
-    btn.innerHTML='↻ Обновить';
+    document.getElementById('rbtn').disabled=false;
+    set('rbtn-txt','↻ Обновить');
   }
 }
 
-function mk(id,cfg) { if(CH[id]) CH[id].destroy(); CH[id]=new Chart(document.getElementById(id),cfg); }
-function flash(id,v) { const el=document.getElementById(id); el.textContent=v; el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1500); }
-function set(id,v) { const el=document.getElementById(id); if(el) el.textContent=v; }
-function setStatus(t,txt) { document.getElementById('status').className='status s-'+t; set('status-txt',txt); }
-function dl(id,name) {
-  const c=document.getElementById(id),e=document.createElement('canvas');
-  e.width=c.width*2; e.height=c.height*2;
-  const x=e.getContext('2d'); x.scale(2,2); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(c,0,0);
-  const a=document.createElement('a'); a.download=name+'.png'; a.href=e.toDataURL('image/png'); a.click();
-}
-
-load();
+loadAll();
 </script>
 </body>
 </html>
