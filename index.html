@@ -7,242 +7,166 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f5f4f0; color: #2c2c2a;
-  min-height: 100vh;
-}
-
-/* ── Top bar ── */
-.topbar {
-  background: #fff; border-bottom: 1px solid #d3d1c7;
-  padding: 0 32px; display: flex; align-items: center;
-  justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100;
-}
-.logo { font-size: 16px; font-weight: 500; color: #2c2c2a; display: flex; align-items: center; gap: 10px; }
-.logo-badge {
-  background: #e8f7f2; color: #0f6e56; font-size: 10px; font-weight: 600;
-  padding: 2px 8px; border-radius: 20px; letter-spacing: .04em;
-}
-.topbar-right { display: flex; align-items: center; gap: 10px; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #2c2c2a; min-height: 100vh; }
+.topbar { background: #fff; border-bottom: 1px solid #d3d1c7; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 54px; position: sticky; top: 0; z-index: 100; gap: 12px; }
+.logo { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.logo-badge { background: #e8f7f2; color: #0f6e56; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .ts { font-size: 11px; color: #888780; }
-
-.btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 12px; font-family: inherit; cursor: pointer;
-  border-radius: 7px; padding: 6px 14px; border: 1px solid; transition: background .15s;
-  text-decoration: none; white-space: nowrap;
-}
+.btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-family: inherit; cursor: pointer; border-radius: 7px; padding: 6px 13px; border: 1px solid; transition: background .15s; text-decoration: none; white-space: nowrap; }
 .btn-primary { background: #1D9E75; color: #fff; border-color: #1D9E75; }
 .btn-primary:hover { background: #0f6e56; }
 .btn-primary:disabled { opacity: .5; cursor: default; }
-.btn-outline  { background: #fff; color: #185fa5; border-color: #b5d4f4; }
-.btn-outline:hover { background: #e6f1fb; }
-.btn-ghost    { background: transparent; color: #5f5e5a; border-color: #d3d1c7; }
+.btn-ghost { background: transparent; color: #5f5e5a; border-color: #d3d1c7; }
 .btn-ghost:hover { background: #f1efe8; }
-
-.status {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid;
-}
-.s-ok      { background: #e8f7f2; color: #0f6e56; border-color: #9FE1CB; }
-.s-error   { background: #fcebeb; color: #791f1f; border-color: #f09595; }
-.s-loading { background: #faeeda; color: #854f0b; border-color: #fac775; }
-.s-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-/* ── Tabs ── */
-.tabs {
-  background: #fff; border-bottom: 1px solid #d3d1c7;
-  padding: 0 32px; display: flex; gap: 0;
-}
-.tab {
-  padding: 14px 20px; font-size: 13px; color: #73726c; cursor: pointer;
-  border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
-  white-space: nowrap;
-}
+.btn-sm { padding: 3px 9px; font-size: 11px; }
+.status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid; }
+.s-ok    { background: #e8f7f2; color: #0f6e56; border-color: #9FE1CB; }
+.s-error { background: #fcebeb; color: #791f1f; border-color: #f09595; }
+.s-load  { background: #faeeda; color: #854f0b; border-color: #fac775; }
+.s-dot   { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tabs { background: #fff; border-bottom: 1px solid #d3d1c7; padding: 0 28px; display: flex; overflow-x: auto; }
+.tab { padding: 13px 18px; font-size: 13px; color: #73726c; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s, border-color .15s; }
 .tab:hover { color: #2c2c2a; }
 .tab.active { color: #1D9E75; border-bottom-color: #1D9E75; font-weight: 500; }
-
-/* ── Content ── */
-.page { display: none; padding: 28px 32px 56px; max-width: 1140px; margin: 0 auto; }
+.page { display: none; padding: 24px 28px 56px; max-width: 1160px; margin: 0 auto; }
 .page.active { display: block; }
-
-/* ── KPI row ── */
-.kpi-row { display: grid; gap: 12px; margin-bottom: 20px; }
-.kpi-row-3 { grid-template-columns: repeat(3,1fr); }
-.kpi-row-4 { grid-template-columns: repeat(4,1fr); }
-.kpi-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 16px 18px; }
-.kpi-badge {
-  display: inline-block; font-size: 10px; font-weight: 600;
-  padding: 2px 9px; border-radius: 20px; margin-bottom: 8px; letter-spacing: .03em;
-}
-.bg-green { background: #e8f7f2; color: #0f6e56; }
-.bg-amber { background: #faeeda; color: #854f0b; }
-.bg-blue  { background: #e6f1fb; color: #185fa5; }
-.bg-red   { background: #fcebeb; color: #791f1f; }
-.bg-purple{ background: #EEEDFE; color: #3C3489; }
-.kpi-value { font-size: 24px; font-weight: 500; transition: color .5s; }
+.kpi-row { display: grid; gap: 10px; margin-bottom: 16px; }
+.g3 { grid-template-columns: repeat(3,1fr); }
+.g4 { grid-template-columns: repeat(4,1fr); }
+.kpi-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 14px 16px; }
+.kpi-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-bottom: 6px; letter-spacing: .03em; }
+.bg-green  { background: #e8f7f2; color: #0f6e56; }
+.bg-amber  { background: #faeeda; color: #854f0b; }
+.bg-blue   { background: #e6f1fb; color: #185fa5; }
+.bg-purple { background: #EEEDFE; color: #3C3489; }
+.bg-red    { background: #fcebeb; color: #791f1f; }
+.kpi-value { font-size: 22px; font-weight: 500; transition: color .5s; }
 .kpi-value.flash { color: #1D9E75; }
-.kpi-sub { font-size: 11.5px; color: #73726c; margin-top: 4px; line-height: 1.4; }
-
-/* ── Cards ── */
-.card { background: #fff; border: 1px solid #d3d1c7; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
-.card-title {
-  font-size: 11px; font-weight: 600; color: #888780;
-  text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-}
-.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: #73726c; margin-bottom: 12px; }
-.legend span { display: flex; align-items: center; gap: 5px; }
+.kpi-sub  { font-size: 11px; color: #73726c; margin-top: 3px; line-height: 1.4; }
+.kpi-sub2 { font-size: 10px; color: #1D9E75; margin-top: 2px; font-weight: 500; }
+.card { background: #fff; border: 1px solid #d3d1c7; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+.card-title { font-size: 11px; font-weight: 600; color: #888780; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #73726c; margin-bottom: 10px; }
+.legend span { display: flex; align-items: center; gap: 4px; }
 .lsq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 .chart-wrap { position: relative; width: 100%; }
-
-/* ── Two column grid ── */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-/* ── Insight cards ── */
-.insight-card { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 16px 18px; }
-.insight-title {
-  font-size: 11px; font-weight: 600; color: #73726c; margin-bottom: 12px;
-  display: flex; align-items: center; gap: 7px;
-  text-transform: uppercase; letter-spacing: .04em;
-}
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g2l { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.icard { background: #fff; border: 1px solid #d3d1c7; border-radius: 10px; padding: 14px 16px; }
+.ititle { font-size: 11px; font-weight: 600; color: #73726c; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: .04em; }
 .dot8 { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-table.mini { width: 100%; font-size: 12.5px; border-collapse: collapse; }
-table.mini td { padding: 6px 0; border-bottom: 1px solid #f1efe8; }
+table.mini { width: 100%; font-size: 12px; border-collapse: collapse; }
+table.mini td { padding: 5px 0; border-bottom: 1px solid #f1efe8; }
 table.mini td:last-child { text-align: right; font-weight: 500; }
 table.mini tr:last-child td { border-bottom: none; }
-.td-muted { color: #73726c !important; font-weight: 400 !important; }
-.td-green { color: #0f6e56 !important; }
-.td-red   { color: #A32D2D !important; }
-.td-amber { color: #854f0b !important; }
-
-.callout {
-  border-radius: 8px; padding: 11px 14px; font-size: 12px; line-height: 1.7; margin-top: 12px;
-}
-.callout-green { background: #e8f7f2; border-left: 4px solid #1D9E75; }
-.callout-amber { background: #faeeda; border-left: 4px solid #BA7517; }
-.callout-blue  { background: #e6f1fb; border-left: 4px solid #185fa5; }
-
-/* ── Milestone pill ── */
-.milestone {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: #e8f7f2; border: 1px solid #9FE1CB; border-radius: 20px;
-  padding: 4px 12px; font-size: 11px; font-weight: 500; color: #0f6e56; margin: 3px;
-}
-
-/* ── Error ── */
-#error-box {
-  display: none; background: #fcebeb; border: 1px solid #f09595; border-left: 4px solid #A32D2D;
-  border-radius: 8px; padding: 14px 18px; margin: 20px 32px;
-  font-size: 13px; color: #791f1f; line-height: 1.8;
-}
-.spinner {
-  display: inline-block; width: 12px; height: 12px;
-  border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
-  border-radius: 50%; animation: spin .7s linear infinite;
-}
+.tm { color: #73726c !important; font-weight: 400 !important; }
+.tg { color: #0f6e56 !important; }
+.callout { border-radius: 8px; padding: 10px 13px; font-size: 11.5px; line-height: 1.7; margin-top: 10px; }
+.cg { background: #e8f7f2; border-left: 4px solid #1D9E75; }
+.ca { background: #faeeda; border-left: 4px solid #BA7517; }
+.cb { background: #e6f1fb; border-left: 4px solid #185fa5; }
+.cp { background: #EEEDFE; border-left: 4px solid #534AB7; }
+.pill { display: inline-flex; align-items: center; background: #e8f7f2; border: 1px solid #9FE1CB; border-radius: 20px; padding: 3px 9px; font-size: 10px; font-weight: 500; color: #0f6e56; margin: 2px; }
+.tgl-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.tgl { padding: 4px 10px; font-size: 11px; border-radius: 6px; border: 1px solid #d3d1c7; background: #fff; cursor: pointer; color: #73726c; font-family: inherit; transition: all .15s; }
+.tgl.on { color: #fff; border-color: transparent; }
+.t-rev.on { background: #185fa5; } .t-gp.on { background: #1D9E75; } .t-ebi.on { background: #7F77DD; } .t-ni.on { background: #A32D2D; }
+.cost-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.cost-lbl { width: 170px; font-size: 11.5px; color: #2c2c2a; flex-shrink: 0; }
+.cost-track { flex: 1; height: 8px; background: #f1efe8; border-radius: 4px; overflow: hidden; }
+.cost-fill { height: 100%; border-radius: 4px; }
+.cost-val { width: 44px; text-align: right; font-size: 11px; color: #73726c; }
+#error-box { display: none; background: #fcebeb; border: 1px solid #f09595; border-left: 4px solid #A32D2D; border-radius: 8px; padding: 12px 16px; margin: 16px 28px; font-size: 13px; color: #791f1f; line-height: 1.8; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 768px) {
-  .topbar { padding: 0 16px; }
-  .tabs { padding: 0 16px; }
-  .page { padding: 20px 16px 48px; }
-  .kpi-row-3, .kpi-row-4 { grid-template-columns: 1fr 1fr; }
-  .grid-2 { grid-template-columns: 1fr; }
+  .topbar, .tabs, .page { padding-left: 14px; padding-right: 14px; }
+  .g3, .g4 { grid-template-columns: 1fr 1fr; }
+  .g2, .g2l { grid-template-columns: 1fr; }
 }
-@media (max-width: 480px) {
-  .kpi-row-3, .kpi-row-4 { grid-template-columns: 1fr; }
-}
+@media (max-width: 480px) { .g3, .g4 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
-<!-- Top bar -->
 <div class="topbar">
-  <div class="logo">
-    La Frite
-    <span class="logo-badge">LIVE</span>
-  </div>
+  <div class="logo">La Frite <span class="logo-badge">LIVE</span></div>
   <div class="topbar-right">
     <span class="ts" id="ts"></span>
-    <span class="status s-loading" id="status"><span class="s-dot"></span><span id="stxt">Загрузка...</span></span>
+    <span class="status s-load" id="st"><span class="s-dot"></span><span id="stxt">Загрузка...</span></span>
     <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE/edit" target="_blank">✏️ Таблица</a>
-    <button class="btn btn-primary" id="rbtn" onclick="loadAll()"><span id="rbtn-txt">↻ Обновить</span></button>
+    <button class="btn btn-primary" id="rbtn" onclick="load()"><span id="rtxt">↻ Обновить</span></button>
   </div>
 </div>
 
-<!-- Tabs -->
 <div class="tabs">
-  <div class="tab active" onclick="showTab('cash',this)">💰 Cash Flow</div>
-  <div class="tab" onclick="showTab('pnl',this)">📈 P&L</div>
-  <div class="tab" onclick="showTab('unit',this)">⚙️ Unit Economics</div>
-  <div class="tab" onclick="showTab('vol',this)">📦 Объёмы</div>
+  <div class="tab active" onclick="tab('cash',this)">💰 Cash Flow</div>
+  <div class="tab" onclick="tab('pnl',this)">📈 P&L</div>
+  <div class="tab" onclick="tab('unit',this)">⚙️ Unit Economics</div>
+  <div class="tab" onclick="tab('vol',this)">📦 Объёмы</div>
 </div>
-
 <div id="error-box"></div>
+<div id="dbg" style="display:none;background:#f1efe8;border:1px solid #d3d1c7;border-radius:8px;padding:10px 16px;margin:10px 28px;font-size:11px;color:#444;line-height:1.7;word-break:break-all"></div>
 
-<!-- ══ CASH TAB ══════════════════════════════════════════════════════ -->
+<!-- CASH -->
 <div class="page active" id="tab-cash">
-
-  <div class="kpi-row kpi-row-3">
+  <div class="kpi-row g3">
     <div class="kpi-card">
       <div class="kpi-badge bg-green">✓ Closing cash апрель 2027</div>
       <div class="kpi-value" id="k-cash">—</div>
-      <div class="kpi-sub">Достигнут операционной деятельностью — до equity injection</div>
+      <div class="kpi-sub">Накоплен трейд-моделью — без единого доллара инъекций</div>
+      <div class="kpi-sub2">↑ $115K/мес операционного CF с янв 2027</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-badge bg-amber">⚡ Equity injection 2027</div>
       <div class="kpi-value" id="k-eq">—</div>
-      <div class="kpi-sub">Требуется май–ноябрь; <span id="k-covered">—</span> покрывается кэшем</div>
+      <div class="kpi-sub"><span id="k-cov">—</span> покрывается кэшем · внешняя потребность: <span id="k-ext">—</span></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-badge bg-blue">▲ Первый + CF</div>
+      <div class="kpi-badge bg-blue">▲ Первый положительный CF</div>
       <div class="kpi-value">Авг 2026</div>
-      <div class="kpi-sub">Первый месяц с положительным операционным денежным потоком</div>
+      <div class="kpi-sub">Трейд выходит на полную мощность 21т/мес</div>
+      <div class="kpi-sub2">↑ $120K/мес стабильный operating CF</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-title">
       <span>Closing cash & Equity injection — помесячно ($K)</span>
-      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-cash','cf_closing_cash')">↓ PNG</button>
+      <button class="btn btn-ghost btn-sm" onclick="dl('ch-cash','cf_cash')">↓ PNG</button>
     </div>
     <div class="legend">
       <span><span class="lsq" style="background:#1D9E75"></span>Closing cash</span>
       <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Equity injection</span>
-      <span><span class="lsq" style="background:#d4537e;opacity:.7;border:1px dashed #d4537e"></span>Порог реинвест. $987K</span>
+      <span><span class="lsq" style="background:#d4537e;border:1px dashed #d4537e"></span>Порог $988K</span>
     </div>
-    <div class="chart-wrap" style="height:260px"><canvas id="ch-cash"></canvas></div>
+    <div class="chart-wrap" style="height:250px"><canvas id="ch-cash"></canvas></div>
   </div>
-
-  <div class="grid-2">
-    <div class="insight-card">
-      <div class="insight-title"><span class="dot8" style="background:#1D9E75"></span>Cash bridge к апрелю 2027</div>
+  <div class="g2">
+    <div class="icard">
+      <div class="ititle"><span class="dot8" style="background:#1D9E75"></span>Cash bridge к апрелю 2027</div>
       <table class="mini">
         <tr><td>Opening cash (янв 2027)</td><td id="b-open">—</td></tr>
         <tr><td>+ Operating CF янв</td><td id="b-m1">—</td></tr>
         <tr><td>+ Operating CF фев</td><td id="b-m2">—</td></tr>
         <tr><td>+ Operating CF мар</td><td id="b-m3">—</td></tr>
         <tr><td>+ Operating CF апр</td><td id="b-m4">—</td></tr>
-        <tr><td><strong>= Closing cash апр 2027</strong></td><td id="b-close" class="td-green"><strong>—</strong></td></tr>
+        <tr><td><strong>= Closing cash апр 2027</strong></td><td id="b-close" class="tg"><strong>—</strong></td></tr>
       </table>
-      <div class="callout callout-green">
-        <strong>$<span id="hl-cash">987</span>K — накопленный операционный профит трейд-модели.</strong> Equity injection начинается только с мая 2027 — к этому моменту бизнес уже самостоятельно аккумулировал <span id="hl-cash2">$988K</span> кэша.
+      <div class="callout cg">
+        <strong>$<span id="hl-cash">988</span>K — накопленный операционный профит трейд-модели.</strong> Equity injection начинается только с мая 2027. Реальная потребность во внешнем финансировании — <strong>$<span id="hl-ext">—</span>K</strong>.
       </div>
     </div>
-    <div class="insight-card">
-      <div class="insight-title"><span class="dot8" style="background:#BA7517"></span>Equity injection — разбивка 2027</div>
-      <div class="chart-wrap" style="height:180px"><canvas id="ch-eq"></canvas></div>
-      <div class="callout callout-amber" style="margin-top:10px">
-        Зелёная часть — покрывается операционным кэшем. Янтарная — требует внешнего привлечения.
-      </div>
+    <div class="icard">
+      <div class="ititle"><span class="dot8" style="background:#BA7517"></span>Equity injection — разбивка 2027</div>
+      <div class="chart-wrap" style="height:170px"><canvas id="ch-eq"></canvas></div>
+      <div class="callout ca" style="margin-top:8px;font-size:11px">Зелёное — покрывается кэшем трейда. Янтарное — внешнее привлечение.</div>
     </div>
   </div>
-
-  <div class="card" style="margin-top:16px">
+  <div class="card" style="margin-top:14px">
     <div class="card-title">
       <span>Структура баланса — 2027 помесячно ($K)</span>
-      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-bal','balance_2027')">↓ PNG</button>
+      <button class="btn btn-ghost btn-sm" onclick="dl('ch-bal','balance_2027')">↓ PNG</button>
     </div>
     <div class="legend">
       <span><span class="lsq" style="background:#1D9E75"></span>Cash</span>
@@ -251,29 +175,30 @@ table.mini tr:last-child td { border-bottom: none; }
       <span><span class="lsq" style="background:rgba(162,45,45,.5);border:1px solid #A32D2D"></span>AP</span>
       <span><span class="lsq" style="background:rgba(29,158,117,.25);border:1px solid #1D9E75"></span>Equity</span>
     </div>
-    <div class="chart-wrap" style="height:220px"><canvas id="ch-bal"></canvas></div>
+    <div class="chart-wrap" style="height:210px"><canvas id="ch-bal"></canvas></div>
   </div>
-
 </div>
 
-<!-- ══ P&L TAB ═══════════════════════════════════════════════════════ -->
+<!-- P&L -->
 <div class="page" id="tab-pnl">
-
-  <div class="kpi-row kpi-row-4">
+  <div class="kpi-row g4">
     <div class="kpi-card">
       <div class="kpi-badge bg-blue">Revenue 2027 FY</div>
       <div class="kpi-value" id="p-rev">—</div>
-      <div class="kpi-sub">Годовая выручка по трейд-модели</div>
+      <div class="kpi-sub">трейд: <span id="p-revt">—</span> · пр-во: <span id="p-revp">—</span></div>
+      <div class="kpi-sub2">2028: <span id="p-rev28">—</span></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-badge bg-green">Gross Profit 2027 FY</div>
       <div class="kpi-value" id="p-gp">—</div>
       <div class="kpi-sub">Gross margin ~<span id="p-gm">—</span></div>
+      <div class="kpi-sub2">2028: <span id="p-gp28">—</span></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-badge bg-purple">EBITDA 2027 FY</div>
-      <div class="kpi-value" id="p-ebitda">—</div>
+      <div class="kpi-value" id="p-ebi">—</div>
       <div class="kpi-sub">EBITDA margin ~<span id="p-em">—</span></div>
+      <div class="kpi-sub2">2028: <span id="p-ebi28">—</span></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-badge bg-amber">Breakeven</div>
@@ -281,582 +206,540 @@ table.mini tr:last-child td { border-bottom: none; }
       <div class="kpi-sub">Первый месяц с положительным Net Income</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-title">
-      <span>Выручка, Gross Profit & EBITDA — помесячно ($K)</span>
-      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-pnl','pnl_monthly')">↓ PNG</button>
+      <span>P&L консолидация — 2026–2028 ($K)</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="tgl-row" style="margin:0">
+          <button class="tgl t-rev on" onclick="tgl('rev',this)">Revenue</button>
+          <button class="tgl t-gp on"  onclick="tgl('gp',this)">Gross Profit</button>
+          <button class="tgl t-ebi on" onclick="tgl('ebi',this)">EBITDA</button>
+          <button class="tgl t-ni on"  onclick="tgl('ni',this)">Net Income</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="dl('ch-pnl','pnl_monthly')">↓ PNG</button>
+      </div>
     </div>
-    <div class="legend">
-      <span><span class="lsq" style="background:#185fa5"></span>Revenue</span>
-      <span><span class="lsq" style="background:#1D9E75"></span>Gross Profit</span>
-      <span><span class="lsq" style="background:#7F77DD"></span>EBITDA</span>
-      <span><span class="lsq" style="background:rgba(162,45,45,.4);border:1px dashed #A32D2D"></span>Net Income</span>
-    </div>
-    <div class="chart-wrap" style="height:260px"><canvas id="ch-pnl"></canvas></div>
+    <div class="chart-wrap" style="height:270px"><canvas id="ch-pnl"></canvas></div>
   </div>
-
-  <div class="grid-2">
+  <div class="g2">
     <div class="card" style="margin-bottom:0">
-      <div class="card-title">Gross Margin % — помесячно</div>
+      <div class="card-title">Gross Margin % — консолидация по месяцам</div>
       <div class="chart-wrap" style="height:180px"><canvas id="ch-gm"></canvas></div>
     </div>
     <div class="card" style="margin-bottom:0">
-      <div class="card-title">Структура затрат 2027 FY ($K)</div>
-      <div class="chart-wrap" style="height:180px"><canvas id="ch-costs"></canvas></div>
+      <div class="card-title">Годовые итоги: 2026 / 2027 / 2028 ($K)</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="ch-ann"></canvas></div>
     </div>
   </div>
-
-  <div class="insight-card" style="margin-top:16px">
-    <div class="insight-title"><span class="dot8" style="background:#185fa5"></span>P&L Summary 2027</div>
-    <table class="mini">
-      <tr><td>Revenue</td><td id="ps-rev">—</td></tr>
-      <tr><td>Total COGS</td><td id="ps-cogs" class="td-muted">—</td></tr>
-      <tr><td>Gross Profit</td><td id="ps-gp">—</td></tr>
-      <tr><td>Total OPEX</td><td id="ps-opex" class="td-muted">—</td></tr>
-      <tr><td>EBITDA</td><td id="ps-ebitda">—</td></tr>
-      <tr><td><strong>Net Income</strong></td><td id="ps-ni" class="td-green"><strong>—</strong></td></tr>
-    </table>
-    <div class="callout callout-blue" style="margin-top:12px">
-      Ноябрь 2027 — пиковый месяц по COGS из-за запуска производственной линии ($1,049K). После этого консолидированная маржа восстанавливается выше 56% в декабре.
+  <div class="icard" style="margin-top:14px">
+    <div class="ititle"><span class="dot8" style="background:#185fa5"></span>P&L Summary — консолидация</div>
+    <div class="g2">
+      <div>
+        <div style="font-size:10px;font-weight:600;color:#888780;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">2027</div>
+        <table class="mini">
+          <tr><td>Revenue</td><td id="s27-rev">—</td></tr>
+          <tr><td>– Total COGS</td><td id="s27-cogs" class="tm">—</td></tr>
+          <tr><td>= Gross Profit</td><td id="s27-gp" class="tg">—</td></tr>
+          <tr><td>– Total OPEX</td><td id="s27-opex" class="tm">—</td></tr>
+          <tr><td>= EBITDA</td><td id="s27-ebi">—</td></tr>
+          <tr><td><strong>Net Income</strong></td><td id="s27-ni" class="tg"><strong>—</strong></td></tr>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:#888780;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">2028 прогноз</div>
+        <table class="mini">
+          <tr><td>Revenue</td><td id="s28-rev">—</td></tr>
+          <tr><td>– Total COGS</td><td id="s28-cogs" class="tm">—</td></tr>
+          <tr><td>= Gross Profit</td><td id="s28-gp" class="tg">—</td></tr>
+          <tr><td>– Total OPEX</td><td id="s28-opex" class="tm">—</td></tr>
+          <tr><td>= EBITDA</td><td id="s28-ebi">—</td></tr>
+          <tr><td><strong>Net Income</strong></td><td id="s28-ni" class="tg"><strong>—</strong></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="callout cb" style="margin-top:10px">
+      Ноябрь 2027 — пиковый COGS из-за запуска производства ($1,049K). В 2028 производство масштабирует бизнес: Revenue ×8 vs 2027, EBITDA margin восстанавливается до 78%+.
     </div>
   </div>
-
 </div>
 
-<!-- ══ UNIT ECONOMICS TAB ════════════════════════════════════════════ -->
+<!-- UNIT ECONOMICS -->
 <div class="page" id="tab-unit">
-
-  <div class="kpi-row kpi-row-3">
+  <div class="kpi-row g3">
     <div class="kpi-card">
-      <div class="kpi-badge bg-green">Trade Gross Margin</div>
-      <div class="kpi-value">~47–48%</div>
-      <div class="kpi-sub">Стабильная маржа трейд-модели 2026–2027</div>
+      <div class="kpi-badge bg-blue">Selling price</div>
+      <div class="kpi-value">$13.62/кг</div>
+      <div class="kpi-sub">Цена реализации готового фри (производственная модель)</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-badge bg-blue">Revenue run-rate</div>
-      <div class="kpi-value" id="u-rr">—</div>
-      <div class="kpi-sub">При выходе на полную мощность (×12)</div>
+      <div class="kpi-badge bg-red">Total cost/кг</div>
+      <div class="kpi-value" id="u-cost">$2.07/кг</div>
+      <div class="kpi-sub">Полная себестоимость производства 1 кг фри</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-badge bg-purple">EBITDA run-rate</div>
-      <div class="kpi-value" id="u-er">—</div>
-      <div class="kpi-sub">При стабильной работе трейд-модели</div>
+      <div class="kpi-badge bg-green">Unit gross margin</div>
+      <div class="kpi-value" id="u-mg">$11.55/кг</div>
+      <div class="kpi-sub">~85% · выход 50% из сырья · 3M кг/год</div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="card-title">
-      <span>Revenue vs COGS — трейд-модель помесячно ($K)</span>
-      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-ue1','unit_rev_cogs')">↓ PNG</button>
-    </div>
-    <div class="legend">
-      <span><span class="lsq" style="background:#185fa5"></span>Revenue (трейд)</span>
-      <span><span class="lsq" style="background:rgba(162,45,45,.5)"></span>COGS (трейд)</span>
-      <span><span class="lsq" style="background:#1D9E75"></span>Gross Profit</span>
-    </div>
-    <div class="chart-wrap" style="height:240px"><canvas id="ch-ue1"></canvas></div>
-  </div>
-
-  <div class="grid-2">
+  <div class="g2l">
     <div class="card" style="margin-bottom:0">
-      <div class="card-title">Gross Margin % — трейд vs консолидация</div>
-      <div class="chart-wrap" style="height:200px"><canvas id="ch-ue2"></canvas></div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-title"><span class="dot8" style="background:#7F77DD"></span>Ramp-up профиль</div>
-      <div style="margin-bottom:10px">
-        <span class="milestone">Май 2026 — старт продаж</span>
-        <span class="milestone">Июл 2026 — полная мощность трейд</span>
-        <span class="milestone">Авг 2026 — первый + CF</span>
-        <span class="milestone">Апр 2027 — $987K cash</span>
-        <span class="milestone">Ноя 2027 — запуск производства</span>
+      <div class="card-title">Структура затрат на 1 кг готового фри (производственная модель)</div>
+      <div id="cost-bars"></div>
+      <div style="border-top:1px solid #f1efe8;margin-top:10px;padding-top:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#73726c">Итого себестоимость</span><strong id="u-tot">$2.07/кг</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#73726c">Selling price</span><strong style="color:#185fa5">$13.62/кг</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#73726c">Gross margin/кг</span><strong style="color:#0f6e56" id="u-mg2">$11.55/кг (85%)</strong></div>
       </div>
-      <div class="callout callout-blue">
-        Трейд-модель генерирует стабильный Gross Profit ~$137K/мес уже с июля 2026 при марже 47.8%. Производственная линия запускается в ноябре 2027 — первый месяц убыточный по COGS из-за рамп-апа, затем маржа выходит на 56%+.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Доля в себестоимости</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="ch-donut"></canvas></div>
+      </div>
+      <div class="icard">
+        <div class="ititle"><span class="dot8" style="background:#7F77DD"></span>Параметры модели</div>
+        <table class="mini">
+          <tr><td>Годовой выпуск</td><td>3 000 000 кг</td></tr>
+          <tr><td>Выход из сырья</td><td>50%</td></tr>
+          <tr><td>Сырьё (raw potato)</td><td>$1.07/кг</td></tr>
+          <tr><td>Логистика</td><td>$0.34/кг</td></tr>
+          <tr><td>Labour (total)</td><td>$0.20/кг</td></tr>
+        </table>
+        <div class="callout cp" style="margin-top:8px;font-size:11px">Не включает логистику финального продукта и дистрибьюторскую маржу.</div>
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- ══ VOLUMES TAB ════════════════════════════════════════════════════ -->
+<!-- VOLUMES -->
 <div class="page" id="tab-vol">
-
-  <div class="kpi-row kpi-row-3">
+  <div class="kpi-row g3">
     <div class="kpi-card">
       <div class="kpi-badge bg-blue">Трейд — стабильный объём</div>
-      <div class="kpi-value">21 000 кг</div>
-      <div class="kpi-sub">Ежемесячные продажи с июля 2026 (полная мощность)</div>
+      <div class="kpi-value">21 т/мес</div>
+      <div class="kpi-sub">Базовый объём с июля 2026 · остаётся константой</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-badge bg-green">Цена продажи</div>
-      <div class="kpi-value">$13.6/кг</div>
-      <div class="kpi-sub">Стабильная цена трейд-модели 2026–2027</div>
+      <div class="kpi-badge bg-green">Производство — пик 2028</div>
+      <div class="kpi-value">250 т/мес</div>
+      <div class="kpi-sub">Полная мощность с апреля 2028 · рамп-ап 6 мес</div>
+      <div class="kpi-sub2">старт ноябрь 2027 → +41т в мес</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-badge bg-purple">Производство — старт</div>
-      <div class="kpi-value">Ноя 2027</div>
-      <div class="kpi-sub">Первый месяц собственного производства фри</div>
+      <div class="kpi-badge bg-purple">Совокупная выручка при пике</div>
+      <div class="kpi-value">$3 692K/мес</div>
+      <div class="kpi-sub">Трейд + производство · апр 2028+</div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-title">
-      <span>Объём продаж — трейд vs производство (тонн/мес)</span>
-      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-vol1','volumes_sales')">↓ PNG</button>
+      <span>Объём продаж — трейд + производство (т/мес) · 2026–2028</span>
+      <button class="btn btn-ghost btn-sm" onclick="dl('ch-v1','volumes_sales')">↓ PNG</button>
     </div>
     <div class="legend">
-      <span><span class="lsq" style="background:#185fa5"></span>Трейд (покупной фри), т</span>
-      <span><span class="lsq" style="background:#1D9E75"></span>Производство (собств. фри), т</span>
+      <span><span class="lsq" style="background:#185fa5"></span>Трейд (т)</span>
+      <span><span class="lsq" style="background:#1D9E75"></span>Производство (т)</span>
     </div>
-    <div class="chart-wrap" style="height:240px"><canvas id="ch-vol1"></canvas></div>
+    <div class="chart-wrap" style="height:220px"><canvas id="ch-v1"></canvas></div>
   </div>
-
-  <div class="grid-2">
+  <div class="card">
+    <div class="card-title">
+      <span>Выручка: трейд + производство ($K/мес) · 2026–2028</span>
+      <button class="btn btn-ghost btn-sm" onclick="dl('ch-v2','volumes_revenue')">↓ PNG</button>
+    </div>
+    <div class="legend">
+      <span><span class="lsq" style="background:#185fa5"></span>Трейд ($K)</span>
+      <span><span class="lsq" style="background:#1D9E75"></span>Производство ($K)</span>
+    </div>
+    <div class="chart-wrap" style="height:220px"><canvas id="ch-v2"></canvas></div>
+  </div>
+  <div class="g2">
     <div class="card" style="margin-bottom:0">
       <div class="card-title">
-        <span>Выручка: трейд vs производство ($K)</span>
-        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-vol2','volumes_revenue')">↓ PNG</button>
+        <span>Закупки сырья — трейд + производство ($K)</span>
+        <button class="btn btn-ghost btn-sm" onclick="dl('ch-v3','volumes_purchases')">↓ PNG</button>
       </div>
-      <div class="chart-wrap" style="height:220px"><canvas id="ch-vol2"></canvas></div>
+      <div class="legend">
+        <span><span class="lsq" style="background:rgba(186,117,23,.7)"></span>Трейд</span>
+        <span><span class="lsq" style="background:rgba(24,95,165,.5)"></span>Производство</span>
+      </div>
+      <div class="chart-wrap" style="height:200px"><canvas id="ch-v3"></canvas></div>
     </div>
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title">
-        <span>Закупки трейд — объём и стоимость</span>
-        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="dl('ch-vol3','volumes_purchases')">↓ PNG</button>
+    <div class="icard">
+      <div class="ititle"><span class="dot8" style="background:#185fa5"></span>Ramp-up профиль</div>
+      <div>
+        <span class="pill">Май 2026 — старт трейда</span>
+        <span class="pill">Июл 2026 — трейд полная мощность</span>
+        <span class="pill">Авг 2026 — первый + CF</span>
+        <span class="pill">Апр 2027 — $988K cash</span>
+        <span class="pill">Ноя 2027 — старт производства</span>
+        <span class="pill">Апр 2028 — производство полная мощность</span>
       </div>
-      <div class="chart-wrap" style="height:220px"><canvas id="ch-vol3"></canvas></div>
+      <div class="callout cb" style="margin-top:10px;font-size:11px">
+        Трейд — постоянная база 21 т/мес. Производство масштабирует бизнес: к апрелю 2028 суммарный объём 271 т/мес — рост ×13 от старта. Закупки ноября 2027 — пиковые из-за формирования производственных запасов.
+      </div>
     </div>
   </div>
-
-  <div class="insight-card" style="margin-top:16px">
-    <div class="insight-title"><span class="dot8" style="background:#185fa5"></span>Логика объёмов</div>
-    <table class="mini">
-      <tr><td>Трейд — старт (май 2026)</td><td>6 900 кг/мес</td></tr>
-      <tr><td>Трейд — полная мощность (июл 2026)</td><td>21 000 кг/мес</td></tr>
-      <tr><td>Трейд — цена закупки</td><td>$7.1–7.3/кг</td></tr>
-      <tr><td>Трейд — цена продажи</td><td>$13.6/кг</td></tr>
-      <tr><td>Производство — старт (ноя 2027)</td><td>41 667 кг/мес</td></tr>
-      <tr><td>Производство — выход (дек 2027)</td><td>83 333 кг/мес</td></tr>
-    </table>
-    <div class="callout callout-blue" style="margin-top:12px">
-      Трейд-модель — это перепродажа готового фри: закупаем у поставщика, продаём дистрибьюторам. Производство запускается в ноябре 2027 и добавляет собственный продукт поверх трейда. Объём трейда остаётся базой — производство масштабирует общую выручку.
-    </div>
-  </div>
-
 </div>
 
 <script>
-const ID  = '1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE';
-const CH  = {};
+const ID='1HNLni-_WhwQ_PHQWXiTSADz40-RoMTBNdhYQQ26-fEE';
+const CH={};
+let pnlCh=null;
 
-// ── Tabs ─────────────────────────────────────────────────────────────
-function showTab(name, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+function tab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
 }
 
-// ── Fetch & parse CSV ─────────────────────────────────────────────────
-async function fetchCSV(sheet) {
-  const url = `https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&t=${Date.now()}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status} — лист "${sheet}"`);
-  return parseCSV(await r.text());
+async function csv(sheet){
+  const url=`https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&t=${Date.now()}`;
+  const r=await fetch(url);
+  if(!r.ok) throw new Error(`HTTP ${r.status} — лист "${sheet}"`);
+  return parse(await r.text());
 }
 
-function parseCSV(text) {
-  const rows=[]; let row=[], f='', q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i],nx=text[i+1];
-    if(q){ if(c==='"'&&nx==='"'){f+='"';i++;}else if(c==='"')q=false;else f+=c; }
-    else { if(c==='"')q=true; else if(c===','){row.push(f.trim());f='';}
+function parse(txt){
+  const rows=[]; let row=[],f='',q=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i],nx=txt[i+1];
+    if(q){if(c==='"'&&nx==='"'){f+='"';i++;}else if(c==='"')q=false;else f+=c;}
+    else{if(c==='"')q=true;else if(c===','){row.push(f.trim());f='';}
       else if(c==='\n'){row.push(f.trim());rows.push(row);row=[];f='';}
-      else if(c!=='\r')f+=c; }
+      else if(c!=='\r')f+=c;}
   }
   if(f||row.length){row.push(f.trim());rows.push(row);}
   return rows;
 }
 
-const n  = v => { if(!v||v==='')return 0; return parseFloat(String(v).replace(/[^\d.\-]/g,''))||0; };
-const K  = v => Math.round(v/1000);
-const fK = v => '$'+Math.round(v/1000).toLocaleString('ru-RU')+'K';
-const fM = v => { const m=Math.round(v/1000000*10)/10; return '$'+m+'M'; };
+const n=v=>{if(!v||v==='')return 0;return parseFloat(String(v).replace(/[^\d.\-]/g,''))||0;};
+const K=v=>Math.round(v/1000);
+const fK=v=>'$'+Math.round(v/1000).toLocaleString('ru-RU')+'K';
+const fM=v=>'$'+(Math.round(v/100000)/10).toLocaleString('ru-RU')+'M';
+const fmt=v=>Math.abs(v)>=1000000?fM(v):fK(v);
 
-function findRow(data, label, fromRow=0) {
+function fr(data,label,from=0){
   const lo=label.toLowerCase();
-  for(let i=fromRow;i<data.length;i++){
-    if(data[i].some(c=>c&&String(c).toLowerCase().includes(lo))) return i;
-  }
+  for(let i=from;i<data.length;i++){if(data[i].some(c=>c&&String(c).toLowerCase().includes(lo)))return i;}
   return -1;
 }
 
-function monthCols(data) {
+function mc(data){
   let hdr=[],best=0;
   for(let i=0;i<Math.min(8,data.length);i++){
-    const hits=data[i].filter(c=>{const s=String(c);return s.includes('26')||s.includes('27');}).length;
-    if(hits>best){best=hits;hdr=data[i];}
+    const h=data[i].filter(c=>{const s=String(c);return s.includes('26')||s.includes('27')||s.includes('28');}).length;
+    if(h>best){best=h;hdr=data[i];}
   }
-  const c26=[],c27=[];
+  const c26=[],c27=[],c28=[];
   hdr.forEach((cell,c)=>{
     if(c<1)return;
     const s=String(cell).trim();
-    const h26=(s.includes('2026')||s.includes('-26')||s.includes("'26"))&&s!=='2026';
-    const h27=(s.includes('2027')||s.includes('-27')||s.includes("'27"))&&s!=='2027';
-    if(h26)c26.push(c); else if(h27)c27.push(c);
+    if((s.includes('2026')||s.includes('-26')||s.includes("'26"))&&s!=='2026')c26.push(c);
+    else if((s.includes('2027')||s.includes('-27')||s.includes("'27"))&&s!=='2027')c27.push(c);
+    else if((s.includes('2028')||s.includes('-28')||s.includes("'28"))&&s!=='2028')c28.push(c);
   });
-  return {c26:c26.slice(0,12),c27:c27.slice(0,12)};
+  return{c26:c26.slice(0,12),c27:c27.slice(0,12),c28:c28.slice(0,12)};
 }
 
-function getVals(data,ri,cols){ if(ri<0)return cols.map(()=>0); return cols.map(c=>n(data[ri]?.[c])); }
+function gv(d,ri,cols){if(ri<0)return cols.map(()=>0);return cols.map(c=>n(d[ri]?.[c]));}
 
-// ── Chart helpers ─────────────────────────────────────────────────────
-const muted='#888780', gc='rgba(0,0,0,0.06)';
+const mu='#888780',gc='rgba(0,0,0,0.06)';
 const bf={family:"-apple-system,'Segoe UI',sans-serif",size:11};
-const tip={backgroundColor:'#fff',borderColor:'#d3d1c7',borderWidth:1,titleColor:'#2c2c2a',bodyColor:'#444441',padding:10};
-const sX={ticks:{color:muted,font:bf,autoSkip:false,maxRotation:45},grid:{color:gc},border:{color:gc}};
-const sY={ticks:{color:muted,font:bf,callback:v=>'$'+v+'K'},grid:{color:gc},border:{color:'transparent'}};
-const sYpct={ticks:{color:muted,font:bf,callback:v=>v+'%'},grid:{color:gc},border:{color:'transparent'}};
-const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}};
+const tp={backgroundColor:'#fff',borderColor:'#d3d1c7',borderWidth:1,titleColor:'#2c2c2a',bodyColor:'#444441',padding:10};
+const sX={ticks:{color:mu,font:bf,autoSkip:true,maxTicksLimit:16,maxRotation:45},grid:{color:gc},border:{color:gc}};
+const sY={ticks:{color:mu,font:bf,callback:v=>'$'+v+'K'},grid:{color:gc},border:{color:'transparent'}};
+const sYt={ticks:{color:mu,font:bf,callback:v=>v+'т'},grid:{color:gc},border:{color:'transparent'}};
+const sYp={ticks:{color:mu,font:bf,callback:v=>v+'%'},grid:{color:gc},border:{color:'transparent'}};
+const bs={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}};
 
-function mk(id,cfg){ if(CH[id])CH[id].destroy(); CH[id]=new Chart(document.getElementById(id),cfg); }
-function set(id,v){ const el=document.getElementById(id); if(el)el.textContent=v; }
-function flash(id,v){ const el=document.getElementById(id); if(!el)return; el.textContent=v; el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1500); }
-function setStatus(t,txt){ document.getElementById('status').className='status s-'+t; set('stxt',txt); }
+function mk(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart(document.getElementById(id),cfg);return CH[id];}
+function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function flash(id,v){const el=document.getElementById(id);if(!el)return;el.textContent=v;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}
+function setSt(t,txt){document.getElementById('st').className='status s-'+t;set('stxt',txt);}
 
-function dl(id,name){
+function dl(id,nm){
   const c=document.getElementById(id),e=document.createElement('canvas');
   e.width=c.width*2;e.height=c.height*2;
   const x=e.getContext('2d');x.scale(2,2);x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(c,0,0);
-  const a=document.createElement('a');a.download=name+'.png';a.href=e.toDataURL('image/png');a.click();
+  const a=document.createElement('a');a.download=nm+'.png';a.href=e.toDataURL('image/png');a.click();
 }
 
-// April 2027 annotation plugin
-function makeAnnoPlugin(reinvestK, aprIdx) {
-  return {
-    id:'anno',
-    afterDraw({ctx,chartArea:{left,right,top},scales:{x,y}}) {
-      const yp=y.getPixelForValue(reinvestK);
-      ctx.save();
-      ctx.setLineDash([5,4]);ctx.strokeStyle='#d4537e';ctx.lineWidth=1.5;ctx.globalAlpha=.6;
-      ctx.beginPath();ctx.moveTo(left,yp);ctx.lineTo(right,yp);ctx.stroke();
-      ctx.setLineDash([]);ctx.globalAlpha=1;
-      ctx.fillStyle='#993356';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='right';
-      ctx.fillText('$'+reinvestK+'K — порог реинвест.',right-4,yp-5);
-      const xp=x.getPixelForValue(aprIdx);
-      ctx.strokeStyle='#1D9E75';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.globalAlpha=.55;
-      ctx.beginPath();ctx.moveTo(xp,top);ctx.lineTo(xp,yp);ctx.stroke();
-      ctx.setLineDash([]);ctx.globalAlpha=1;
-      ctx.fillStyle='#1D9E75';ctx.beginPath();ctx.arc(xp,yp,6,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
-      ctx.fillText('✓',xp,yp+3);
-      const bx=xp+8,by=yp-22,bw=140,bh=26;
-      ctx.fillStyle='#fff';ctx.strokeStyle='#9FE1CB';ctx.lineWidth=1;
-      ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();ctx.stroke();
-      ctx.fillStyle='#0f6e56';ctx.font='9.5px -apple-system,sans-serif';ctx.textAlign='left';
-      ctx.fillText('$'+reinvestK+'K достигнут апр \'27',bx+6,by+10);
-      ctx.fillStyle='#3B6D11';ctx.font='9px -apple-system,sans-serif';
-      ctx.fillText('Свободен для реинвестирования',bx+6,by+20);
-      ctx.restore();
-    }
-  };
+function tgl(key,btn){
+  btn.classList.toggle('on');
+  if(!pnlCh)return;
+  const idx={rev:0,gp:1,ebi:2,ni:3}[key];
+  pnlCh.data.datasets[idx].hidden=!pnlCh.data.datasets[idx].hidden;
+  pnlCh.update();
 }
 
-// ── Main load ─────────────────────────────────────────────────────────
-async function loadAll() {
+function anno(rK,aIdx){
+  return{id:'anno',afterDraw({ctx,chartArea:{left,right,top},scales:{x,y}}){
+    const yp=y.getPixelForValue(rK);
+    ctx.save();
+    ctx.setLineDash([5,4]);ctx.strokeStyle='#d4537e';ctx.lineWidth=1.5;ctx.globalAlpha=.6;
+    ctx.beginPath();ctx.moveTo(left,yp);ctx.lineTo(right,yp);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.fillStyle='#993356';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='right';
+    ctx.fillText('$'+rK+'K — порог реинвест.',right-4,yp-5);
+    const xp=x.getPixelForValue(aIdx);
+    ctx.strokeStyle='#1D9E75';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.globalAlpha=.5;
+    ctx.beginPath();ctx.moveTo(xp,top);ctx.lineTo(xp,yp);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.fillStyle='#1D9E75';ctx.beginPath();ctx.arc(xp,yp,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.fillText('✓',xp,yp+3);
+    const bx=xp+8,by=yp-22,bw=136,bh=26;
+    ctx.fillStyle='#fff';ctx.strokeStyle='#9FE1CB';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#0f6e56';ctx.font='9.5px -apple-system,sans-serif';ctx.textAlign='left';
+    ctx.fillText('$'+rK+'K достигнут апр \'27',bx+5,by+10);
+    ctx.fillStyle='#3B6D11';ctx.font='9px sans-serif';
+    ctx.fillText('Накоплен трейд-моделью',bx+5,by+20);
+    ctx.restore();
+  }};
+}
+
+async function load(){
   const btn=document.getElementById('rbtn');
-  btn.disabled=true; set('rbtn-txt',''); document.getElementById('rbtn-txt').innerHTML='<span class="spinner"></span> Загружаю...';
-  setStatus('loading','Загрузка...');
+  btn.disabled=true;set('rtxt','');document.getElementById('rtxt').innerHTML='<span class="spinner"></span>';
+  setSt('s-load','Загрузка...');
   document.getElementById('error-box').style.display='none';
 
-  try {
-    const [cf,bal,pnl,vol] = await Promise.all([fetchCSV('CF'),fetchCSV('Balance'),fetchCSV('P&L'),fetchCSV('Volume Build-Up')]);
+  try{
+    const[cf,bal,pnl,vol]=await Promise.all([csv('CF'),csv('Balance'),csv('P&L'),csv('Volume Build-Up')]);
 
-    // ── CF parsing ────────────────────────────────────────────────
-    const {c26,c27}=monthCols(cf);
-    const rClose=findRow(cf,'Closing cash');
-    const rEq   =findRow(cf,'Equity injection');
-    const rNI   =findRow(cf,'Net income');
-    const rAR   =findRow(cf,'ΔAR');
-    const rInv  =findRow(cf,'inventory');
-    const rAP   =findRow(cf,'ΔAP');
-    const rOps  =findRow(cf,'Cash flow from operations');
+    // CF
+    const{c26,c27}=mc(cf);
+    const rCl=fr(cf,'Closing cash'),rEq=fr(cf,'Equity injection');
+    // "Cash flow from operations" appears 3 times — need the one AFTER "Cash Flow from Operations" header
+    // It's the row that comes after the header, not investing/financing
+    // Find by looking for the row that has both "Cash flow from operations" and is NOT "before tax" and NOT "from investing" and NOT "from financing"
+    let rOp=-1;
+    for(let i=0;i<cf.length;i++){
+      const cell=cf[i].find(c=>c&&String(c).trim().toLowerCase()==='cash flow from operations');
+      if(cell){rOp=i;break;}
+    }
+    // fallback: find row 13-ish — the one after "Cash flow from operations (before tax)"
+    if(rOp<0) rOp=fr(cf,'Cash flow from operations');
+    const cl26=gv(cf,rCl,c26),cl27=gv(cf,rCl,c27);
+    const eq26=gv(cf,rEq,c26),eq27=gv(cf,rEq,c27);
+    const ops27=gv(cf,rOp,c27);
+    const closing=[...cl26,...cl27].map(K);
+    const eqInj=[...eq26,...eq27].map(K);
+    const apCash=cl27[3]||987530,eqAnn=eq27.reduce((a,b)=>a+b,0);
+    const open27=cl26[cl26.length-1]||598130;
+    const pool=K(apCash);let rem=pool;
+    const cov=eq27.map(v=>{const vk=K(v),c=Math.min(rem,vk);rem=Math.max(0,rem-vk);return c;});
+    const unc=eq27.map((v,i)=>K(v)-cov[i]);
+    const ext=unc.reduce((a,b)=>a+b,0);
 
-    const cl26=getVals(cf,rClose,c26), cl27=getVals(cf,rClose,c27);
-    const eq26=getVals(cf,rEq,  c26),  eq27=getVals(cf,rEq,  c27);
-    const ops27=getVals(cf,rOps,c27);
-    const closing  =[...cl26,...cl27].map(K);
-    const eqInj    =[...eq26,...eq27].map(K);
-    const ann27    =c27[c27.length-1]+1;
-    const aprilCash=cl27[3]||987530;
-    const eqAnn    =eq27.reduce((a,b)=>a+b,0);
+    // Balance
+    const{c27:bc27}=mc(bal);
+    const cash_b=gv(bal,fr(bal,'Cash'),bc27).map(K);
+    const ar_b=gv(bal,fr(bal,'Accounts Receivable'),bc27).map(K);
+    const inv_b=gv(bal,fr(bal,'Inventory'),bc27).map(K);
+    const ap_b=gv(bal,fr(bal,'Accounts Payable'),bc27).map(K);
+    const eq_b=gv(bal,fr(bal,'TOTAL EQUITY'),bc27).map(K);
+    const ta_b=gv(bal,fr(bal,'TOTAL ASSETS'),bc27).map(K);
 
-    // Opening cash Jan 2027 = closing Dec 2026
-    const openingJan27 = cl26[cl26.length-1] || 598130;
-
-    // Equity split
-    const pool=K(aprilCash); let rem=pool;
-    const covered  =eq27.map(v=>{const vk=K(v),c=Math.min(rem,vk);rem=Math.max(0,rem-vk);return c;});
-    const uncovered=eq27.map((v,i)=>K(v)-covered[i]);
-    const covMonths=covered.filter(v=>v>0).length;
-    const extNeeded=uncovered.reduce((a,b)=>a+b,0);
-
-    // ── Balance parsing ───────────────────────────────────────────
-    const {c27:bc27}=monthCols(bal);
-    const cash_b=getVals(bal,findRow(bal,'Cash'),               bc27).map(K);
-    const ar_b  =getVals(bal,findRow(bal,'Accounts Receivable'),bc27).map(K);
-    const inv_b =getVals(bal,findRow(bal,'Inventory'),          bc27).map(K);
-    const ap_b  =getVals(bal,findRow(bal,'Accounts Payable'),   bc27).map(K);
-    const eq_b  =getVals(bal,findRow(bal,'TOTAL EQUITY'),       bc27).map(K);
-    const ta_b  =getVals(bal,findRow(bal,'TOTAL ASSETS'),       bc27).map(K);
-
-    // ── P&L parsing — find Consolidation section (row 107+) ──────
-    const pnlCols=list=>list; // cols 2-26
-    const {c26:pc26,c27:pc27}=monthCols(pnl);
-    // Find consolidation section rows (after row ~107)
-    const consStart=findRow(pnl,'Consolidation',100);
-    const rRev  =findRow(pnl,'REVENUE',     consStart>0?consStart:100);
-    const rCogs =findRow(pnl,'Total COGS',  consStart>0?consStart:100);
-    const rGP   =findRow(pnl,'GROSS PROFIT',consStart>0?consStart:100);
-    const rOpex =findRow(pnl,'Total OPEX',  consStart>0?consStart:100);
-    const rEBITDA=findRow(pnl,'EBITDA',     consStart>0?consStart:100);
-    const rNetI =findRow(pnl,'NET INCOME',  consStart>0?consStart:100);
-    const rGM   =findRow(pnl,'Gross Margin',consStart>0?consStart:100);
-    const rEM   =findRow(pnl,'EBITDA Margin',consStart>0?consStart:100);
-
-    const rev26  =getVals(pnl,rRev,  pc26); const rev27  =getVals(pnl,rRev,  pc27);
-    const cogs26 =getVals(pnl,rCogs, pc26); const cogs27 =getVals(pnl,rCogs, pc27);
-    const gp26   =getVals(pnl,rGP,   pc26); const gp27   =getVals(pnl,rGP,   pc27);
-    const opex26 =getVals(pnl,rOpex, pc26); const opex27 =getVals(pnl,rOpex, pc27);
-    const ebitda26=getVals(pnl,rEBITDA,pc26); const ebitda27=getVals(pnl,rEBITDA,pc27);
-    const ni26   =getVals(pnl,rNetI, pc26); const ni27   =getVals(pnl,rNetI, pc27);
-    const gm26   =getVals(pnl,rGM,   pc26); const gm27   =getVals(pnl,rGM,   pc27);
-    const em26   =getVals(pnl,rEM,   pc26); const em27   =getVals(pnl,rEM,   pc27);
-
-    const allRev=[...rev26,...rev27].map(K);
-    const allCogs=[...cogs26,...cogs27].map(K);
-    const allGP=[...gp26,...gp27].map(K);
-    const allEbitda=[...ebitda26,...ebitda27].map(K);
-    const allNI=[...ni26,...ni27].map(K);
-    const allGM=[...gm26,...gm27].map(v=>Math.round(v*100*10)/10);
-    const allEM=[...em26,...em27].map(v=>Math.round(v*100*10)/10);
-
-    // Trade model section
-    const trStart=findRow(pnl,'Trade model',50);
-    const rTRev=findRow(pnl,'REVENUE',trStart>0?trStart:60);
-    const rTCogs=findRow(pnl,'Total COGS',trStart>0?trStart:60);
-    const rTGP=findRow(pnl,'GROSS PROFIT',trStart>0?trStart:60);
-    const rTGM=findRow(pnl,'Gross Margin',trStart>0?trStart:60);
-    const tRev26=getVals(pnl,rTRev,pc26);  const tRev27=getVals(pnl,rTRev,pc27);
-    const tCogs26=getVals(pnl,rTCogs,pc26); const tCogs27=getVals(pnl,rTCogs,pc27);
-    const tGP26=getVals(pnl,rTGP,pc26);   const tGP27=getVals(pnl,rTGP,pc27);
-    const tGM26=getVals(pnl,rTGM,pc26);   const tGM27=getVals(pnl,rTGM,pc27);
-
-    const allTRev=[...tRev26,...tRev27].map(K);
-    const allTCogs=[...tCogs26,...tCogs27].map(K);
-    const allTGP=[...tGP26,...tGP27].map(K);
-    const allTGM=[...tGM26,...tGM27].map(v=>Math.round(v*100*10)/10);
-
-    // ── Annual 2027 totals ────────────────────────────────────────
-    const pAnn27=pc27[pc27.length-1]+1;
-    const revAnn =n(pnl[rRev]?.[pAnn27]);
-    const cogsAnn=n(pnl[rCogs]?.[pAnn27]);
-    const gpAnn  =n(pnl[rGP]?.[pAnn27]);
-    const opexAnn=n(pnl[rOpex]?.[pAnn27]);
-    const eAnn   =n(pnl[rEBITDA]?.[pAnn27]);
-    const niAnn  =n(pnl[rNetI]?.[pAnn27]);
-
-    // Steady-state month (Jul 2027 = index 6 in 2027)
-    const ssRev=tRev27[5]||286103; // june 2027 — stable trade month
-    const ssEBITDA=ebitda27[5]||119626;
-
-    // CF annual
-    const niCFAnn=n(cf[rNI]?.[ann27]);
-    const arAnn  =n(cf[rAR]?.[ann27]);
-    const invAnn =n(cf[rInv]?.[ann27]);
-    const apAnn  =n(cf[rAP]?.[ann27]);
-
-    // ── Update KPIs ───────────────────────────────────────────────
-    flash('k-cash',  fK(aprilCash));
-    flash('k-eq',    fK(eqAnn));
-    set('k-covered', fK(pool*1000));
-
-    // Cash bridge — operational accumulation Jan-Apr 2027
-    set('b-open', fK(openingJan27));
-    set('b-m1',  '+'+fK(ops27[0]));
-    set('b-m2',  '+'+fK(ops27[1]));
-    set('b-m3',  '+'+fK(ops27[2]));
-    set('b-m4',  '+'+fK(ops27[3]));
-    document.getElementById('b-close').querySelector('strong').textContent=fK(aprilCash)+' ✓';
-    set('hl-cash',  K(aprilCash).toLocaleString('ru-RU'));
-    set('hl-cash2', fK(aprilCash));
-    set('hl-mo',   '~'+covMonths);
-    set('hl-ext',  extNeeded.toLocaleString('ru-RU'));
-
-    flash('p-rev',   revAnn>1e6 ? fM(revAnn) : fK(revAnn));
-    flash('p-gp',    fK(gpAnn));
-    flash('p-ebitda',fK(eAnn));
-    set('p-gm',  revAnn ? Math.round(gpAnn/revAnn*100)+'%' : '—');
-    set('p-em',  revAnn ? Math.round(eAnn/revAnn*100)+'%'  : '—');
-    set('ps-rev',  fK(revAnn)); set('ps-cogs', fK(cogsAnn));
-    set('ps-gp',   fK(gpAnn));  set('ps-opex', fK(opexAnn));
-    set('ps-ebitda',fK(eAnn));
-    document.getElementById('ps-ni').querySelector('strong').textContent=fK(niAnn);
-
-    flash('u-rr', '$'+Math.round(ssRev/1000*12).toLocaleString('ru-RU')+'K/yr');
-    flash('u-er', '$'+Math.round(ssEBITDA/1000*12).toLocaleString('ru-RU')+'K/yr');
-
-    // ── Labels ───────────────────────────────────────────────────
-    const L26=['янв\'26','фев\'26','мар\'26','апр\'26','май\'26','июн\'26','июл\'26','авг\'26','сен\'26','окт\'26','ноя\'26','дек\'26'];
-    const L27=['янв\'27','фев\'27','мар\'27','апр\'27','май\'27','июн\'27','июл\'27','авг\'27','сен\'27','окт\'27','ноя\'27','дек\'27'];
-    const allL=[...L26.slice(0,c26.length),...L27.slice(0,c27.length)];
-    const reinvestK=K(aprilCash), aprIdx=c26.length+3;
-
-    // ── CASH charts ───────────────────────────────────────────────
-    mk('ch-cash',{type:'bar',data:{labels:allL,datasets:[
-      {label:'Closing cash',data:closing,type:'line',borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.3,pointRadius:closing.map((_,i)=>i===aprIdx?0:2.5),pointBackgroundColor:'#1D9E75',borderWidth:2.5,order:1},
-      {label:'Equity injection',data:eqInj,backgroundColor:'rgba(186,117,23,.6)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,order:2}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY,min:0,suggestedMax:reinvestK*1.25}}},plugins:[makeAnnoPlugin(reinvestK,aprIdx)]});
-
-    mk('ch-eq',{type:'bar',data:{labels:L27.slice(0,eq27.length),datasets:[
-      {label:'Покрывается кэшем',data:covered,backgroundColor:'rgba(29,158,117,.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'eq'},
-      {label:'Внешний equity',   data:uncovered,backgroundColor:'rgba(186,117,23,.65)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,stack:'eq'}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{title:c=>'Equity — '+c[0].label,label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null}}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true,min:0}}}});
-
-    mk('ch-bal',{type:'bar',data:{labels:L27.slice(0,bc27.length),datasets:[
-      {label:'Cash',     data:cash_b,backgroundColor:'#1D9E75',stack:'a'},
-      {label:'AR',       data:ar_b,  backgroundColor:'#BA7517',stack:'a'},
-      {label:'Inventory',data:inv_b, backgroundColor:'#7F77DD',stack:'a'},
-      {label:'AP',       data:ap_b,  backgroundColor:'rgba(162,45,45,.5)',borderColor:'#A32D2D',borderWidth:1,stack:'b'},
-      {label:'Equity',   data:eq_b,  backgroundColor:'rgba(29,158,117,.22)',borderColor:'#1D9E75',borderWidth:1,stack:'b'}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
-      label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`,
-      afterBody:ctx=>{const i=ctx[0].dataIndex;return['─────────────',` Total Assets: $${(ta_b[i]||0).toLocaleString('ru-RU')}K`,` Equity: $${(eq_b[i]||0).toLocaleString('ru-RU')}K`];}
-    }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
-
-    // ── P&L charts ────────────────────────────────────────────────
-    mk('ch-pnl',{type:'bar',data:{labels:allL,datasets:[
-      {label:'Revenue',     data:allRev,   backgroundColor:'rgba(24,95,165,.55)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'rev'},
-      {label:'Gross Profit',data:allGP,    type:'line',borderColor:'#1D9E75',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2,order:1},
-      {label:'EBITDA',      data:allEbitda,type:'line',borderColor:'#7F77DD',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2,borderDash:[4,2],order:2},
-      {label:'Net Income',  data:allNI,    type:'line',borderColor:'rgba(162,45,45,.7)',backgroundColor:'transparent',tension:.3,pointRadius:1.5,borderWidth:1.5,borderDash:[2,2],order:3}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY}}}});
-
-    mk('ch-gm',{type:'line',data:{labels:allL,datasets:[
-      {label:'Gross Margin %',data:allGM,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.3,pointRadius:2,borderWidth:2},
-      {label:'EBITDA Margin %',data:allEM,borderColor:'#7F77DD',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2,borderDash:[4,2]}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: ${(c.parsed.y||0).toFixed(1)}%`}}},scales:{x:sX,y:{...sYpct}}}});
-
-    // Cost breakdown donut 2027
-    const cogsAnnK=K(cogsAnn), opexAnnK=K(opexAnn), gpAnnK=K(gpAnn);
-    mk('ch-costs',{
-      type:'doughnut',
-      data:{
-        labels:['COGS','OPEX','Gross Profit'],
-        datasets:[{
-          data:[cogsAnnK, opexAnnK, Math.max(0,gpAnnK)],
-          backgroundColor:['rgba(162,45,45,.6)','rgba(186,117,23,.6)','rgba(29,158,117,.6)'],
-          borderColor:['#A32D2D','#BA7517','#1D9E75'],
-          borderWidth:1
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{position:'bottom',labels:{font:bf,color:muted,boxWidth:10,padding:8}},
-          tooltip:{...tip,callbacks:{label:function(c){return ' '+c.label+': $'+c.parsed.toLocaleString('ru-RU')+'K';}}}
+    // P&L 3 years
+    const{c26:pc26,c27:pc27,c28:pc28}=mc(pnl);
+    // Find Consolidation section robustly — try label, then count REVENUE occurrences
+    let cons=fr(pnl,'Consolidation',90);
+    if(cons<0){
+      let cnt=0;
+      for(let i=0;i<pnl.length;i++){
+        if(pnl[i].some(c=>String(c).trim().toUpperCase()==='REVENUE')){
+          cnt++;
+          if(cnt>=3){cons=i-3;break;} // 3rd REVENUE = consolidation section
         }
       }
-    });
+    }
+    if(cons<0) cons=100;
+    const[rRv,rCo,rGP,rOx,rEB,rNI,rGM]=['REVENUE','Total COGS','GROSS PROFIT','Total OPEX','EBITDA','NET INCOME','Gross Margin'].map(l=>fr(pnl,l,cons));
+    const rv26=gv(pnl,rRv,pc26),rv27=gv(pnl,rRv,pc27),rv28=gv(pnl,rRv,pc28);
+    const co26=gv(pnl,rCo,pc26),co27=gv(pnl,rCo,pc27),co28=gv(pnl,rCo,pc28);
+    const gp26=gv(pnl,rGP,pc26),gp27=gv(pnl,rGP,pc27),gp28=gv(pnl,rGP,pc28);
+    const ox26=gv(pnl,rOx,pc26),ox27=gv(pnl,rOx,pc27),ox28=gv(pnl,rOx,pc28);
+    const eb26=gv(pnl,rEB,pc26),eb27=gv(pnl,rEB,pc27),eb28=gv(pnl,rEB,pc28);
+    const ni26=gv(pnl,rNI,pc26),ni27=gv(pnl,rNI,pc27),ni28=gv(pnl,rNI,pc28);
+    const gm26=gv(pnl,rGM,pc26),gm27=gv(pnl,rGM,pc27),gm28=gv(pnl,rGM,pc28);
+    const allRev=[...rv26,...rv27,...rv28].map(K);
+    const allGP=[...gp26,...gp27,...gp28].map(K);
+    const allEB=[...eb26,...eb27,...eb28].map(K);
+    const allNI=[...ni26,...ni27,...ni28].map(K);
+    const allGM=[...gm26,...gm27,...gm28].map(v=>Math.round(v*100*10)/10);
+    // Annual col = sum of monthly cols for that year (col right after last monthly)
+    const a26=pc26.length?pc26[pc26.length-1]+1:-1;
+    const a27=pc27.length?pc27[pc27.length-1]+1:-1;
+    const a28=pc28.length?pc28[pc28.length-1]+1:-1;
+    // If annual col has no data, sum monthly values
+    const annOrSum=(r,cols,ac)=>{
+      const v=n(pnl[r]?.[ac]);
+      if(v!==0) return v;
+      return gv(pnl,r,cols).reduce((a,b)=>a+b,0);
+    };
+    const[rA26,gA26,eA26,nA26,cA26,oA26]=[rRv,rGP,rEB,rNI,rCo,rOx].map(r=>annOrSum(r,pc26,a26));
+    const[rA27,gA27,eA27,nA27,cA27,oA27]=[rRv,rGP,rEB,rNI,rCo,rOx].map(r=>annOrSum(r,pc27,a27));
+    const[rA28,gA28,eA28,nA28,cA28,oA28]=[rRv,rGP,rEB,rNI,rCo,rOx].map(r=>annOrSum(r,pc28,a28));
 
-    // ── Unit Economics charts ──────────────────────────────────────
-    mk('ch-ue1',{type:'bar',data:{labels:allL,datasets:[
-      {label:'Revenue',     data:allTRev, backgroundColor:'rgba(24,95,165,.5)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'s'},
-      {label:'COGS',        data:allTCogs,backgroundColor:'rgba(162,45,45,.4)',borderColor:'#A32D2D',borderWidth:1,borderRadius:2,stack:'c'},
-      {label:'Gross Profit',data:allTGP,  type:'line',borderColor:'#1D9E75',backgroundColor:'transparent',tension:.3,pointRadius:2,borderWidth:2.5,order:1}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY}}}});
+    // Trade rev 2027 annual from Volume
+    const{c27:vc27}=mc(vol);const vtS=fr(vol,'Trade model',30);
+    const rTrRv=fr(vol,'Revenue, $',vtS>0?vtS:37);
+    const tradRv27=gv(vol,rTrRv,vc27).reduce((a,b)=>a+b,0);
+    const prodRv27=Math.max(0,rA27-tradRv27);
 
-    mk('ch-ue2',{type:'line',data:{labels:allL,datasets:[
-      {label:'Трейд GM %',    data:allTGM,borderColor:'#185fa5',backgroundColor:'rgba(24,95,165,.07)',fill:true,tension:.2,pointRadius:2,borderWidth:2},
-      {label:'Консол. GM %',  data:allGM, borderColor:'#1D9E75',backgroundColor:'transparent',tension:.2,pointRadius:2,borderWidth:2,borderDash:[4,2]}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>` ${c.dataset.label}: ${(c.parsed.y||0).toFixed(1)}%`}}},scales:{x:sX,y:{...sYpct}}}});
+    // Visible debug panel — will be removed once fixed
+    const dbgEl=document.getElementById('dbg');
+    if(dbgEl){
+      dbgEl.style.display='block';
+      dbgEl.innerHTML=`<strong>Debug:</strong> `
+        +`CF rOp=${rOp} "${cf[rOp]?.[1]||cf[rOp]?.[0]}" ops27=[${ops27.slice(0,4).map(v=>Math.round(v/1000)).join(',')}]K | `
+        +`P&L cons=${cons} rRv=${rRv} "${pnl[rRv]?.[1]||pnl[rRv]?.[0]}" rA27=${Math.round(rA27/1000)}K a27col=${a27} | `
+        +`pc27.len=${pc27.length} pc27[0]=${pc27[0]} pc27[-1]=${pc27[pc27.length-1]} | `
+        +`allRev[20..23]=[${allRev.slice(20,24).join(',')}]`;
+    }
 
-    // ── Volumes parsing ───────────────────────────────────────────
-    const {c26:vc26,c27:vc27}=monthCols(vol);
-    // Trade model rows (after row 37)
-    const vtStart=findRow(vol,'Trade model',30);
-    const rTSalesKg  =findRow(vol,'Sales volume, kg',    vtStart>0?vtStart:37);
-    const rTRevVol   =findRow(vol,'Revenue, $',          vtStart>0?vtStart:37);
-    const rTPurchKg  =findRow(vol,'Purchase volume, kg', vtStart>0?vtStart:37);
-    const rTPurchVal =findRow(vol,'Purchases, $',        vtStart>0?vtStart:37);
-    // Production model rows (before row 37)
-    const rPSalesKg  =findRow(vol,'Sales volume, kg',    0);
-    const rPRevVol   =findRow(vol,'Revenue, $',          0);
-    const rPProdKg   =findRow(vol,'Production (fries',   0);
+    flash('k-cash',fK(apCash));
+    flash('k-eq',fK(eqAnn));
+    set('k-cov',fK(pool*1000));
+    set('k-ext','$'+ext.toLocaleString('ru-RU')+'K');
+    set('b-open',fK(open27));
+    set('b-m1','+'+fK(ops27[0]));set('b-m2','+'+fK(ops27[1]));
+    set('b-m3','+'+fK(ops27[2]));set('b-m4','+'+fK(ops27[3]));
+    document.getElementById('b-close').querySelector('strong').textContent=fK(apCash)+' ✓';
+    set('hl-cash',K(apCash).toLocaleString('ru-RU'));
+    set('hl-ext',ext.toLocaleString('ru-RU'));
 
-    const tSalesKg=[...getVals(vol,rTSalesKg, vc26),...getVals(vol,rTSalesKg, vc27)].map(v=>Math.round(v/1000*10)/10);
-    const tRevVol =[...getVals(vol,rTRevVol,  vc26),...getVals(vol,rTRevVol,  vc27)].map(K);
-    const tPurchKg=[...getVals(vol,rTPurchKg, vc26),...getVals(vol,rTPurchKg, vc27)].map(v=>Math.round(v/1000*10)/10);
-    const tPurchV =[...getVals(vol,rTPurchVal,vc26),...getVals(vol,rTPurchVal,vc27)].map(K);
-    const pSalesKg=[...getVals(vol,rPSalesKg, vc26),...getVals(vol,rPSalesKg, vc27)].map(v=>Math.round(v/1000*10)/10);
-    const pRevVol =[...getVals(vol,rPRevVol,  vc26),...getVals(vol,rPRevVol,  vc27)].map(K);
-    const pProdKg =[...getVals(vol,rPProdKg,  vc26),...getVals(vol,rPProdKg,  vc27)].map(v=>Math.round(v/1000*10)/10);
+    // P&L KPIs
+    flash('p-rev',fmt(rA27));flash('p-gp',fmt(gA27));flash('p-ebi',fmt(eA27));
+    set('p-gm',rA27?Math.round(gA27/rA27*100)+'%':'—');
+    set('p-em',rA27?Math.round(eA27/rA27*100)+'%':'—');
+    set('p-revt',fK(tradRv27));set('p-revp',fK(prodRv27));
+    set('p-rev28',fmt(rA28));set('p-gp28',fmt(gA28));set('p-ebi28',fmt(eA28));
+    set('s27-rev',fmt(rA27));set('s27-cogs',fmt(cA27));set('s27-gp',fmt(gA27));
+    set('s27-opex',fmt(oA27));set('s27-ebi',fmt(eA27));
+    document.getElementById('s27-ni').querySelector('strong').textContent=fmt(nA27);
+    set('s28-rev',fmt(rA28));set('s28-cogs',fmt(cA28));set('s28-gp',fmt(gA28));
+    set('s28-opex',fmt(oA28));set('s28-ebi',fmt(eA28));
+    document.getElementById('s28-ni').querySelector('strong').textContent=fmt(nA28);
 
-    // Volume charts
-    const sYkg={ticks:{color:muted,font:bf,callback:v=>v+'т'},grid:{color:gc},border:{color:'transparent'}};
+    // Unit economics — static from UNITECON sheet
+    const costs=[
+      {l:'Raw potato',    v:1.066983,c:'#A32D2D'},
+      {l:'Logistics',     v:0.340000,c:'#BA7517'},
+      {l:'Labour',        v:0.202725,c:'#7F77DD'},
+      {l:'Electricity',   v:0.104866,c:'#185fa5'},
+      {l:'Add. raw mat.', v:0.100000,c:'#534AB7'},
+      {l:'Packaging',     v:0.090000,c:'#1D9E75'},
+      {l:'Mfg overheads', v:0.040103,c:'#888780'},
+      {l:'G&A',           v:0.026667,c:'#B05535'},
+    ];
+    const tot=2.071344,price=13.623978,mg=price-tot;
+    document.getElementById('cost-bars').innerHTML=costs.map(ci=>`
+      <div class="cost-row">
+        <div class="cost-lbl">${ci.l}</div>
+        <div class="cost-track"><div class="cost-fill" style="width:${Math.round(ci.v/tot*100)}%;background:${ci.c}"></div></div>
+        <div class="cost-val">$${ci.v.toFixed(2)}</div>
+      </div>`).join('');
+    mk('ch-donut',{type:'doughnut',data:{labels:costs.map(c=>c.l),datasets:[{data:costs.map(c=>Math.round(c.v*100)/100),backgroundColor:costs.map(c=>c.c+'cc'),borderColor:costs.map(c=>c.c),borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{...bf,size:10},color:mu,boxWidth:8,padding:5}},tooltip:{...tp,callbacks:{label:function(c){return ' '+c.label+': $'+c.parsed.toFixed(2)+'/кг';}}}}}}); 
 
-    mk('ch-vol1',{type:'bar',data:{labels:allL,datasets:[
-      {label:'Трейд (т)',       data:tSalesKg, backgroundColor:'rgba(24,95,165,.6)', borderColor:'#185fa5',borderWidth:1,borderRadius:3,stack:'s'},
-      {label:'Производство (т)',data:pSalesKg, backgroundColor:'rgba(29,158,117,.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'s'}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
-      label:c=>c.parsed.y?` ${c.dataset.label}: ${c.parsed.y.toLocaleString('ru-RU')} т`:null,
-      afterBody:ctx=>{
-        const i=ctx[0].dataIndex;
-        const tot=(tSalesKg[i]||0)+(pSalesKg[i]||0);
-        return tot?['─────────',` Итого: ${tot.toLocaleString('ru-RU')} т`]:[];
-      }
-    }}},scales:{x:{...sX,stacked:true},y:{...sYkg,stacked:true}}}});
+    // Labels
+    const L26=['янв\'26','фев\'26','мар\'26','апр\'26','май\'26','июн\'26','июл\'26','авг\'26','сен\'26','окт\'26','ноя\'26','дек\'26'];
+    const L27=['янв\'27','фев\'27','мар\'27','апр\'27','май\'27','июн\'27','июл\'27','авг\'27','сен\'27','окт\'27','ноя\'27','дек\'27'];
+    const L28=['янв\'28','фев\'28','мар\'28','апр\'28','май\'28','июн\'28','июл\'28','авг\'28','сен\'28','окт\'28','ноя\'28','дек\'28'];
+    const allL=[...L26.slice(0,c26.length),...L27.slice(0,c27.length)];
+    const allL3=[...L26.slice(0,pc26.length),...L27.slice(0,pc27.length),...L28.slice(0,pc28.length)];
+    const rK=K(apCash),aIdx=c26.length+3;
 
-    mk('ch-vol2',{type:'bar',data:{labels:allL,datasets:[
-      {label:'Трейд ($K)',       data:tRevVol, backgroundColor:'rgba(24,95,165,.55)',borderColor:'#185fa5',borderWidth:1,borderRadius:3,stack:'r'},
-      {label:'Производство ($K)',data:pRevVol, backgroundColor:'rgba(29,158,117,.55)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'r'}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
-      label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null
-    }}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
+    // Cash charts
+    mk('ch-cash',{type:'bar',data:{labels:allL,datasets:[
+      {label:'Closing cash',data:closing,type:'line',borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',fill:true,tension:.3,pointRadius:closing.map((_,i)=>i===aIdx?0:2),pointBackgroundColor:'#1D9E75',borderWidth:2.5,order:1},
+      {label:'Equity injection',data:eqInj,backgroundColor:'rgba(186,117,23,.6)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,order:2}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY,min:0,suggestedMax:rK*1.3}}},plugins:[anno(rK,aIdx)]});
 
-    mk('ch-vol3',{type:'bar',data:{labels:allL,datasets:[
-      {label:'Закупки объём (т)',data:tPurchKg,type:'line',borderColor:'#BA7517',backgroundColor:'rgba(186,117,23,.08)',fill:true,tension:.3,pointRadius:2,borderWidth:2,order:1},
-      {label:'Закупки стоимость ($K)',data:tPurchV,backgroundColor:'rgba(186,117,23,.5)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,order:2}
-    ]},options:{...base,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{
-      label:c=>c.parsed.y?` ${c.dataset.label}: ${c.dataset.label.includes('$')?'$'+c.parsed.y.toLocaleString('ru-RU')+'K':c.parsed.y.toLocaleString('ru-RU')+' т'}`:null
-    }}},scales:{x:sX,y:{...sY}}}});
+    mk('ch-eq',{type:'bar',data:{labels:L27.slice(0,eq27.length),datasets:[
+      {label:'Покрывается кэшем',data:cov,backgroundColor:'rgba(29,158,117,.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:3,stack:'eq'},
+      {label:'Внешний equity',   data:unc,backgroundColor:'rgba(186,117,23,.65)',borderColor:'#BA7517',borderWidth:1,borderRadius:3,stack:'eq'}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{title:c=>'Equity — '+c[0].label,label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null}}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true,min:0}}}});
 
-    // Status
-    const ts=new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    set('ts','Обновлено '+ts);
-    setStatus('ok','Данные актуальны');
+    mk('ch-bal',{type:'bar',data:{labels:L27.slice(0,bc27.length),datasets:[
+      {label:'Cash',data:cash_b,backgroundColor:'#1D9E75',stack:'a'},
+      {label:'AR',data:ar_b,backgroundColor:'#BA7517',stack:'a'},
+      {label:'Inventory',data:inv_b,backgroundColor:'#7F77DD',stack:'a'},
+      {label:'AP',data:ap_b,backgroundColor:'rgba(162,45,45,.5)',borderColor:'#A32D2D',borderWidth:1,stack:'b'},
+      {label:'Equity',data:eq_b,backgroundColor:'rgba(29,158,117,.22)',borderColor:'#1D9E75',borderWidth:1,stack:'b'}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`,afterBody:ctx=>{const i=ctx[0].dataIndex;return['──────────',` Total Assets: $${(ta_b[i]||0).toLocaleString('ru-RU')}K`];}}}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
 
-  } catch(err) {
-    setStatus('error','Ошибка');
+    // P&L charts
+    pnlCh=mk('ch-pnl',{type:'bar',data:{labels:allL3,datasets:[
+      {label:'Revenue',data:allRev,backgroundColor:'rgba(24,95,165,.5)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'rev',type:'bar'},
+      {label:'Gross Profit',data:allGP,type:'line',borderColor:'#1D9E75',backgroundColor:'transparent',tension:.3,pointRadius:1.5,borderWidth:2,order:1},
+      {label:'EBITDA',data:allEB,type:'line',borderColor:'#7F77DD',backgroundColor:'transparent',tension:.3,pointRadius:1.5,borderWidth:2,borderDash:[4,2],order:2},
+      {label:'Net Income',data:allNI,type:'line',borderColor:'rgba(162,45,45,.85)',backgroundColor:'transparent',tension:.3,pointRadius:1,borderWidth:1.5,borderDash:[2,2],order:3}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:sX,y:{...sY}}}});
+
+    mk('ch-gm',{type:'line',data:{labels:allL3,datasets:[
+      {label:'Gross Margin %',data:allGM,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.07)',fill:true,tension:.3,pointRadius:1.5,borderWidth:2}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>` Gross Margin: ${(c.parsed.y||0).toFixed(1)}%`}}},scales:{x:sX,y:{...sYp}}}});
+
+    mk('ch-ann',{type:'bar',data:{labels:['2026','2027','2028'],datasets:[
+      {label:'Revenue',data:[K(rA26),K(rA27),K(rA28)],backgroundColor:'rgba(24,95,165,.55)',borderRadius:4},
+      {label:'Gross Profit',data:[K(gA26),K(gA27),K(gA28)],backgroundColor:'rgba(29,158,117,.7)',borderRadius:4},
+      {label:'EBITDA',data:[K(eA26),K(eA27),K(eA28)],backgroundColor:'rgba(127,119,221,.7)',borderRadius:4},
+    ]},options:{...bs,plugins:{legend:{labels:{font:{...bf,size:10},color:mu,boxWidth:8,padding:6}},tooltip:{...tp,callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y||0).toLocaleString('ru-RU')}K`}}},scales:{x:{...sX,ticks:{...sX.ticks,autoSkip:false,maxRotation:0}},y:{...sY}}}});
+
+    // Volumes 2026-2028
+    const{c26:vc26,c27:vc272,c28:vc28}=mc(vol);
+    const vtSt=fr(vol,'Trade model',30);
+    const[rTSk,rTRv2,rTPk,rTPv]=['Sales volume, kg','Revenue, $','Purchase volume, kg','Purchases, $'].map(l=>fr(vol,l,vtSt>0?vtSt:37));
+    const[rPSk,rPRv2,rPPk,rPPv]=['Sales volume, kg','Revenue, $','Purchase volume, kg','Purchases, $'].map(l=>fr(vol,l,0));
+    const t2=v=>Math.round(v/1000*10)/10;
+    const tSk=[...gv(vol,rTSk,vc26),...gv(vol,rTSk,vc272),...gv(vol,rTSk,vc28)].map(t2);
+    const tRv=[...gv(vol,rTRv2,vc26),...gv(vol,rTRv2,vc272),...gv(vol,rTRv2,vc28)].map(K);
+    const tPv=[...gv(vol,rTPv,vc26),...gv(vol,rTPv,vc272),...gv(vol,rTPv,vc28)].map(K);
+    const pSk=[...gv(vol,rPSk,vc26),...gv(vol,rPSk,vc272),...gv(vol,rPSk,vc28)].map(t2);
+    const pRv=[...gv(vol,rPRv2,vc26),...gv(vol,rPRv2,vc272),...gv(vol,rPRv2,vc28)].map(K);
+    const pPv=[...gv(vol,rPPv,vc26),...gv(vol,rPPv,vc272),...gv(vol,rPPv,vc28)].map(K);
+    const allLV=[...L26.slice(0,vc26.length),...L27.slice(0,vc272.length),...L28.slice(0,vc28.length)];
+
+    const volTip=(ctx)=>{const i=ctx[0].dataIndex,t=(tSk[i]||0)+(pSk[i]||0);return t?['──────────',` Итого: ${t.toFixed(1)} т`]:[];};
+    const revTip=(ctx)=>{const i=ctx[0].dataIndex,t=(tRv[i]||0)+(pRv[i]||0);return t?['──────────',` Итого: $${t.toLocaleString('ru-RU')}K`]:[];};
+    const purTip=(ctx)=>{const i=ctx[0].dataIndex,t=(tPv[i]||0)+(pPv[i]||0);return t?['──────────',` Итого: $${t.toLocaleString('ru-RU')}K`]:[];};
+
+    mk('ch-v1',{type:'bar',data:{labels:allLV,datasets:[
+      {label:'Трейд (т)',data:tSk,backgroundColor:'rgba(24,95,165,.6)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'s'},
+      {label:'Производство (т)',data:pSk,backgroundColor:'rgba(29,158,117,.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:2,stack:'s'}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>c.parsed.y?` ${c.dataset.label}: ${c.parsed.y} т`:null,afterBody:volTip}}},scales:{x:{...sX,stacked:true},y:{...sYt,stacked:true}}}});
+
+    mk('ch-v2',{type:'bar',data:{labels:allLV,datasets:[
+      {label:'Трейд ($K)',data:tRv,backgroundColor:'rgba(24,95,165,.55)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'r'},
+      {label:'Производство ($K)',data:pRv,backgroundColor:'rgba(29,158,117,.55)',borderColor:'#1D9E75',borderWidth:1,borderRadius:2,stack:'r'}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null,afterBody:revTip}}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
+
+    mk('ch-v3',{type:'bar',data:{labels:allLV,datasets:[
+      {label:'Трейд закупки ($K)',data:tPv,backgroundColor:'rgba(186,117,23,.65)',borderColor:'#BA7517',borderWidth:1,borderRadius:2,stack:'p'},
+      {label:'Пр-во закупки ($K)',data:pPv,backgroundColor:'rgba(24,95,165,.5)',borderColor:'#185fa5',borderWidth:1,borderRadius:2,stack:'p'}
+    ]},options:{...bs,plugins:{legend:{display:false},tooltip:{...tp,callbacks:{label:c=>c.parsed.y?` ${c.dataset.label}: $${c.parsed.y.toLocaleString('ru-RU')}K`:null,afterBody:purTip}}},scales:{x:{...sX,stacked:true},y:{...sY,stacked:true}}}});
+
+    set('ts','Обновлено '+new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
+    setSt('s-ok','Данные актуальны');
+
+  }catch(err){
+    setSt('s-error','Ошибка');
     const eb=document.getElementById('error-box');
     eb.style.display='block';
-    eb.innerHTML=`<strong>Не удалось загрузить:</strong> ${err.message}<br><br>
-    <b>Диагностика:</b> открой в браузере — должен скачаться CSV:<br>
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">CF</a> · 
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=Balance" target="_blank" style="color:#185fa5">Balance</a> · 
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=P%26L" target="_blank" style="color:#185fa5">P&L</a> ·
-    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=Volume+Build-Up" target="_blank" style="color:#185fa5">Volume Build-Up</a>`;
+    eb.innerHTML=`<strong>Не удалось загрузить:</strong> ${err.message}<br>
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=CF" target="_blank" style="color:#185fa5">Тест CF</a> · 
+    <a href="https://docs.google.com/spreadsheets/d/${ID}/gviz/tq?tqx=out:csv&sheet=P%26L" target="_blank" style="color:#185fa5">Тест P&L</a>`;
     console.error(err);
-  } finally {
-    document.getElementById('rbtn').disabled=false;
-    set('rbtn-txt','↻ Обновить');
+  }finally{
+    btn.disabled=false;set('rtxt','↻ Обновить');
   }
 }
-
-loadAll();
+load();
 </script>
 </body>
 </html>
