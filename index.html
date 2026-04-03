@@ -591,15 +591,22 @@ async function load(){
     const tradRv27=gv(vol,rTrRv,vc27).reduce((a,b)=>a+b,0);
     const prodRv27=Math.max(0,rA27-tradRv27);
 
-    // Visible debug panel — will be removed once fixed
+
+    // Visible debug panel — always show
     const dbgEl=document.getElementById('dbg');
     if(dbgEl){
       dbgEl.style.display='block';
-      dbgEl.innerHTML=`<strong>Debug:</strong> `
-        +`CF rOp=${rOp} "${cf[rOp]?.[1]||cf[rOp]?.[0]}" ops27=[${ops27.slice(0,4).map(v=>Math.round(v/1000)).join(',')}]K | `
-        +`P&L cons=${cons} rRv=${rRv} "${pnl[rRv]?.[1]||pnl[rRv]?.[0]}" rA27=${Math.round(rA27/1000)}K a27col=${a27} | `
-        +`pc27.len=${pc27.length} pc27[0]=${pc27[0]} pc27[-1]=${pc27[pc27.length-1]} | `
-        +`allRev[20..23]=[${allRev.slice(20,24).join(',')}]`;
+      // Show raw CF rows around ops
+      const cfRows=[];
+      cf.forEach((r,i)=>{if(r.some(c=>c&&String(c).toLowerCase().includes('cash flow')||String(c).toLowerCase().includes('closing')))cfRows.push(i+':'+r.slice(0,2).join('|'));});
+      // Show raw P&L rows 105-115
+      const pnlRows=pnl.slice(105,116).map((r,i)=>(105+i)+':'+r.slice(0,2).join('|')).join(' / ');
+      dbgEl.innerHTML=`<strong>Debug (всегда показывается):</strong><br>
+      CF: rOp=${rOp} "${cf[rOp]?.[1]||cf[rOp]?.[0]||'?'}" | ops27=[${ops27.slice(0,4).map(v=>Math.round(v/1000)).join(',')}]K<br>
+      CF rows с "cash flow/closing": ${cfRows.join(' / ')}<br>
+      P&L: cons=${cons} | rRv=${rRv} "${pnl[rRv]?.[1]||pnl[rRv]?.[0]||'?'}" | rA27=${Math.round(rA27/1000)}K | a27col=${a27}<br>
+      P&L rows 105-115: ${pnlRows}<br>
+      allRev[0..5]=[${allRev.slice(0,6).join(',')}] allRev[20..25]=[${allRev.slice(20,26).join(',')}]`;
     }
 
     flash('k-cash',fK(apCash));
